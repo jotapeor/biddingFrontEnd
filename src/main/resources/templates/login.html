@@ -1,0 +1,21 @@
+<!doctype html>
+
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Logar</title>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+</head>
+<body>
+<h2>LOGAR</h2>
+<form th:action="@{/logar}" th:object="${credenciais}" method="post">
+    <label>E-mail: </label>
+    <input type="email" th:field="*{email}"/>
+    <br/>
+    <label>Senha: </label>
+    <input type="password" th:field="*{senha}"/>
+    <br/>
+    <button type="submit">Logar</button>
+</form>
+</body>
+</html>
