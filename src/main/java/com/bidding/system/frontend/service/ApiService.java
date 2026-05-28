@@ -69,17 +69,16 @@ public class ApiService {
      * @param token token de autenticação recebido após o login
      * @return lista de editais retornada pela API
      */
-    public List<EditalDTO> listarEditais(String token) {
-        // Faz uma requisição GET para o endpoint de editais.
+    public List<EditalDTO> listarEditais(String token, boolean urgente) {
         EditalDTO[] editais = restClient.get()
-                .uri("/editais")
-                // Adiciona o header Authorization com o token Bearer.
+                .uri(uriBuilder -> uriBuilder
+                        .path("/editais")
+                        .queryParam("urgente", urgente)
+                        .build())
                 .header("Authorization", "Bearer " + token)
                 .retrieve()
-                // Converte o corpo JSON para um array de EditalDTO.
                 .body(EditalDTO[].class);
 
-        // Converte o array para List para uso mais conveniente na aplicação.
         return Arrays.asList(editais);
     }
 }

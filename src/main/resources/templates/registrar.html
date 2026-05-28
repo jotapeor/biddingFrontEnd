@@ -1,10 +1,10 @@
 <!DOCTYPE html>
-
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
     <title>Cadastrar</title>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link th:href="@{/webjars/bootstrap/5.3.8/css/bootstrap.min.css}" rel="stylesheet">
 </head>
 <body>
 <h2>CADASTRO</h2>
@@ -18,7 +18,11 @@
     <label>Senha: </label>
     <input type="password" th:field="*{senha}"/>
     <br/><br/>
-    <button type="submit"> Cadastrar</button>
+    <button type="submit" class="btn btn-primary">Cadastrar</button>
+    <nav class="nav">
+        <a class="nav-link" th:href="@{/login}">Já tem uma conta? Logar</a>
+    </nav>
 </form>
+<script th:src="@{/webjars/bootstrap/5.3.8/js/bootstrap.bundle.min.js}"></script>
 </body>
 </html>
