@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Lista de Editais</title>
+    <link th:href="@{/webjars/bootstrap/5.3.8/css/bootstrap.min.css}" rel="stylesheet">
+</head>
+<body>
+<h1>Lista de Editais</h1>
+<form th:action="@{/editais}" method="get" style="margin-bottom:1rem;">
+    <label>
+        <input type="checkbox" name="urgente" value="true" th:checked="${urgente}"/> Mostrar apenas urgentes (ABERTO e
+        fechando nas próximas 48h)
+    </label>
+    <button type="submit" class="btn btn-primary btn-sm">Filtrar</button>
+</form>
+<table class="table-primary">
+    <thead>
+    <tr class="table-primary">
+        <th scope="col">ID</th>
+        <th scope="col">Título</th>
+        <th scope="col">Descrição</th>
+        <th scope="col">Data de fechamento</th>
+        <th scope="col">Status</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr th:each="edital : ${editais}" class="table-primary">
+        <td th:text="${edital.id}"></td>
+        <td th:text="${edital.titulo}"></td>
+        <td th:text="${edital.descricao}"></td>
+        <td th:text="${edital.dataFechamentoFormatada}"></td>
+        <td th:text="${edital.status}"></td>
+    </tr>
+    </tbody>
+</table>
+<script th:src="@{/webjars/bootstrap/5.3.8/js/bootstrap.bundle.min.js}"></script>
+</body>
+</html>

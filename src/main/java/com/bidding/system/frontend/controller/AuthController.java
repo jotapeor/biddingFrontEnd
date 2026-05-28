@@ -37,7 +37,7 @@ public class AuthController {
         System.out.println("token: " + token);
         session.setAttribute("token", token);
         // Redireciona de volta para a página inicial após login bem sucedido.
-        return "redirect:/";
+        return "redirect:/editais";
     }
 
     @GetMapping("/registrar")
