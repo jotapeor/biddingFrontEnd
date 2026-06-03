@@ -10,46 +10,72 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.client.HttpClientErrorException;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
 
 @Controller
 public class AuthController {
 
-    // Injeção do serviço de autenticação para delegar a lógica de login.    
     @Autowired
     private ApiService restService;
 
-    // Tratador para requisições GET em "/login".
-    // Prepara o modelo com um objeto UserRequestDTO vazio para preencher o formulário.
+    private String extrairMensagemDeErro(HttpClientErrorException e) {
+        try {
+            ObjectMapper mapper = new ObjectMapper();
+            JsonNode root = mapper.readTree(e.getResponseBodyAsString());
+            if (root.has("message")) {
+                return root.get("message").asText();
+            }
+        } catch (Exception ex) {
+        }
+        return "Ocorreu um erro inesperado na comunicação.";
+    }
+
     @GetMapping("/login")
     public String login(Model model) {
-        UserRequestDTO credenciais = new UserRequestDTO();
-        model.addAttribute("credenciais", credenciais);
+        model.addAttribute("credenciais", new UserRequestDTO());
         return "login";
     }
 
-    // Tratador para requisições POST em "/logar".
-    // Recebe as credenciais submetidas pelo formulário e tenta autenticar.
     @PostMapping("/logar")
-    public String logar(@ModelAttribute UserRequestDTO credenciais, HttpSession session) {
-        // Chama o serviço de autenticação para obter um token JWT ou similar.
-        String token = restService.logar(credenciais);
-        // Armazena o token na sessão HTTP para uso posterior.
-        System.out.println("token: " + token);
-        session.setAttribute("token", token);
-        // Redireciona de volta para a página inicial após login bem sucedido.
-        return "redirect:/editais";
+    public String logar(@ModelAttribute("credenciais") UserRequestDTO credenciais, Model model, HttpSession session) {
+        try {
+            String token = restService.logar(credenciais);
+            session.setAttribute("token", token);
+            String role = restService.extrairRole(token);
+            session.setAttribute("role", role);
+            return "redirect:/editais";
+        } catch (HttpClientErrorException e) {
+            String msg = extrairMensagemDeErro(e);
+            model.addAttribute("errorMessage", msg);
+            model.addAttribute("credenciais", credenciais);
+            return "login";
+        }
+    }
+
+    @GetMapping("/logout")
+    public String logout(HttpSession session) {
+        session.invalidate();
+        return "redirect:/login";
     }
 
     @GetMapping("/registrar")
     public String registrar(Model model) {
-        UserDTO newUser = new UserDTO();
-        model.addAttribute("user", newUser);
+        model.addAttribute("user", new UserDTO());
         return "registrar";
     }
 
     @PostMapping("/registrar")
-    public String mandarRegistro(@ModelAttribute UserDTO user) {
-        restService.registrar(user);
-        return "redirect:/login";
+    public String registrar(@ModelAttribute("user") UserDTO user, Model model) {
+        try {
+            restService.registrar(user);
+            return "redirect:/login";
+        } catch (HttpClientErrorException e) {
+            String msg = extrairMensagemDeErro(e);
+            model.addAttribute("errorMessage", msg);
+            model.addAttribute("user", user);
+            return "registrar";
+        }
     }
 }

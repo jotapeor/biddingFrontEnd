@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Criar Novo Edital</title>
+    <link th:href="@{/webjars/bootstrap/5.3.8/css/bootstrap.min.css}" rel="stylesheet">
+</head>
+<body class="bg-light">
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow-sm">
+                <div class="card-header bg-success text-white">
+                    <h4 class="mb-0">Criar Novo Edital</h4>
+                </div>
+                <div class="card-body p-4">
+
+                    <div th:if="${errorMessage}" class="alert alert-danger" th:text="${errorMessage}"></div>
+
+                    <form th:action="@{/novo-edital}" th:object="${editalDTO}" method="post">
+                        <div class="mb-3">
+                            <label for="titulo" class="form-label fw-bold">Título</label>
+                            <input type="text" class="form-control" id="titulo" th:field="*{titulo}"
+                                   placeholder="Ex: Edital de Compra de Equipamentos" required/>
+                        </div>
+                        <div class="mb-3">
+                            <label for="descricao" class="form-label fw-bold">Descrição</label>
+                            <textarea class="form-control" id="descricao" th:field="*{descricao}" rows="4"
+                                      placeholder="Detalhes do edital..." required></textarea>
+                        </div>
+                        <div class="mb-4">
+                            <label for="dataFechamento" class="form-label fw-bold">Data e Hora de Fechamento</label>
+                            <input type="datetime-local" class="form-control" id="dataFechamento" name="dataFechamento"
+                                   required>
+                        </div>
+                        <div class="d-flex justify-content-between">
+                            <a th:href="@{/editais}" class="btn btn-outline-secondary">Cancelar</a>
+                            <button type="submit" class="btn btn-success">Salvar Edital</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script th:src="@{/webjars/bootstrap/5.3.8/js/bootstrap.bundle.min.js}"></script>
+</body>
+</html>

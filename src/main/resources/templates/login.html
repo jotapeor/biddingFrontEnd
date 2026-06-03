@@ -6,20 +6,40 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <link th:href="@{/webjars/bootstrap/5.3.8/css/bootstrap.min.css}" rel="stylesheet">
 </head>
-<body>
-<h2>LOGAR</h2>
-<form th:action="@{/logar}" th:object="${credenciais}" method="post">
-    <label>E-mail: </label>
-    <input type="email" th:field="*{email}"/>
-    <br/>
-    <label>Senha: </label>
-    <input type="password" th:field="*{senha}"/>
-    <br/>
-    <button type="submit" class="btn btn-primary">Logar</button>
-    <nav class="nav">
-        <a class="nav-link" th:href="@{/registrar}">Não tem uma conta? Registrar</a>
-    </nav>
-</form>
+<body class="bg-light">
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6 col-lg-4">
+            <div class="card shadow-sm">
+                <div class="card-body p-4">
+                    <h2 class="text-center mb-4 text-primary">Acesso ao Sistema</h2>
+
+                    <div th:if="${errorMessage}" class="alert alert-danger" role="alert"
+                         th:text="${errorMessage}"></div>
+
+                    <form th:action="@{/logar}" th:object="${credenciais}" method="post">
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">E-mail</label>
+                            <input type="email" class="form-control" th:field="*{email}" placeholder="Digite seu e-mail"
+                                   required/>
+                        </div>
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">Senha</label>
+                            <input type="password" class="form-control" th:field="*{senha}"
+                                   placeholder="Digite sua senha" required/>
+                        </div>
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary btn-lg">Logar</button>
+                        </div>
+                        <div class="text-center mt-3">
+                            <a class="text-decoration-none" th:href="@{/registrar}">Não tem uma conta? Registre-se</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 <script th:src="@{/webjars/bootstrap/5.3.8/js/bootstrap.bundle.min.js}"></script>
 </body>
 </html>
