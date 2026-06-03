@@ -6,23 +6,67 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link th:href="@{/webjars/bootstrap/5.3.8/css/bootstrap.min.css}" rel="stylesheet">
 </head>
-<body>
-<h2>CADASTRO</h2>
-<form th:action="@{/registrar}" th:object="${user}" method="post">
-    <label>Nome: </label>
-    <input type="text" th:field="*{nome}" placeholder="Seu nome"/>
-    <br/><br/>
-    <label>Email: </label>
-    <input type="email" th:field="*{email}" placeholder="seu@email.com"/>
-    <br/><br/>
-    <label>Senha: </label>
-    <input type="password" th:field="*{senha}"/>
-    <br/><br/>
-    <button type="submit" class="btn btn-primary">Cadastrar</button>
-    <nav class="nav">
-        <a class="nav-link" th:href="@{/login}">Já tem uma conta? Logar</a>
-    </nav>
-</form>
+<body class="bg-light">
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-5">
+            <div class="card shadow-sm">
+                <div class="card-body p-4">
+                    <h2 class="text-center mb-4 text-primary">Criar Conta</h2>
+
+                    <div th:if="${errorMessage}" class="alert alert-danger" role="alert"
+                         th:text="${errorMessage}"></div>
+
+                    <div id="error-message-js" class="alert alert-danger d-none" role="alert"></div>
+
+                    <form th:action="@{/registrar}" th:object="${user}" method="post" id="formCadastro">
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Nome</label>
+                            <input type="text" class="form-control" th:field="*{nome}" placeholder="Seu nome completo"
+                                   required/>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Email</label>
+                            <input type="email" class="form-control" th:field="*{email}" placeholder="seu@email.com"
+                                   required/>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Senha</label>
+                            <input type="password" class="form-control" th:field="*{senha}" required/>
+                        </div>
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">Confirmar senha</label>
+                            <input type="password" class="form-control" th:field="*{confirmarSenha}" required/>
+                        </div>
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary btn-lg">Cadastrar</button>
+                        </div>
+                        <div class="text-center mt-3">
+                            <a class="text-decoration-none" th:href="@{/login}">Já tem uma conta? Faça login</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 <script th:src="@{/webjars/bootstrap/5.3.8/js/bootstrap.bundle.min.js}"></script>
+
+<script>
+    document.getElementById('formCadastro').addEventListener('submit', function (event) {
+        const senha = document.getElementById('senha').value;
+        const confirmarSenha = document.getElementById('confirmarSenha').value;
+        const alertaErro = document.getElementById('error-message-js');
+
+        if (senha !== confirmarSenha) {
+            event.preventDefault();
+            alertaErro.textContent = "As senhas não coincidem. Por favor, verifique.";
+            alertaErro.classList.remove('d-none');
+            document.getElementById('confirmarSenha').focus();
+        } else {
+            alertaErro.classList.add('d-none');
+        }
+    });
+</script>
 </body>
 </html>

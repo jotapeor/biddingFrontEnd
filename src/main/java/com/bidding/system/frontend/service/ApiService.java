@@ -4,7 +4,9 @@ import com.bidding.system.frontend.model.EditalDTO;
 import com.bidding.system.frontend.model.UserDTO;
 import com.bidding.system.frontend.model.UserRequestDTO;
 
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
+import java.util.Base64;
 import java.util.List;
 
 import org.springframework.stereotype.Service;
@@ -13,62 +15,49 @@ import org.springframework.web.client.RestClient;
 @Service
 public class ApiService {
 
-    // RestClient é o cliente HTTP moderno do Spring que permite
-    // construir requisições de forma fluente e declarativa.
     private final RestClient restClient;
 
-    /**
-     * Construtor padrão do serviço.
-     * <p>
-     * Aqui criamos o RestClient apenas uma vez e configuramos a URL base
-     * comum para todas as requisições deste serviço.
-     */
     public ApiService() {
         this.restClient = RestClient.builder()
-                // Define a base URL que será usada em todas as requisições.
-                // Depois, cada chamada só precisa informar o caminho relativo.
                 .baseUrl("http://localhost:8080/api")
                 .build();
     }
 
-    /**
-     * Envia as credenciais do usuário para o endpoint de login.
-     *
-     * @param user objeto DTO contendo email e senha
-     * @return token ou resposta de autenticação como String
-     */
     public String logar(UserRequestDTO user) {
-        // Inicia a construção de uma requisição POST.
         return restClient.post()
-                // Define o caminho relativo ao endpoint de autenticação.
-                // A URL final será "http://localhost:3333/api/auth/logar".
                 .uri("/autenticar/logar")
-                // Define o corpo da requisição como o DTO de login.
-                // O Spring converte automaticamente este objeto para JSON.
                 .body(user)
-                // Dispara a requisição e obtém a resposta do servidor.
                 .retrieve()
-                // Lê o corpo da resposta e converte para String.
-                // Use outro DTO aqui se a API retornar um objeto JSON complexo.
                 .body(String.class);
+    }
+
+    public String extrairRole(String token) {
+        try {
+            String[] partes = token.split("\\.");
+            String payload = partes[1];
+            int padding = (4 - payload.length() % 4) % 4;
+            payload = payload + "=".repeat(padding);
+            String json = new String(Base64.getUrlDecoder().decode(payload), StandardCharsets.UTF_8);
+            String roleKey = "\"role\":\"";
+            int start = json.indexOf(roleKey);
+            if (start == -1) return null;
+            start += roleKey.length();
+            int end = json.indexOf("\"", start);
+            return json.substring(start, end);
+        } catch (Exception e) {
+            return null;
+        }
     }
 
     public void registrar(UserDTO user) {
         user.setRole("FORNECEDOR");
-        String retorno = restClient
-                .post()
+        restClient.post()
                 .uri("/autenticar/registrar")
                 .body(user)
                 .retrieve()
                 .body(String.class);
     }
 
-    /**
-     * Lista os editais do backend usando o token JWT no cabeçalho Authorization.
-     *
-     * @param token token de autenticação recebido após o login
-     * @return lista de editais retornada pela API
-     */
     public List<EditalDTO> listarEditais(String token, boolean urgente) {
         EditalDTO[] editais = restClient.get()
                 .uri(uriBuilder -> uriBuilder
@@ -80,5 +69,14 @@ public class ApiService {
                 .body(EditalDTO[].class);
 
         return Arrays.asList(editais);
+    }
+
+    public void novoEdital(EditalDTO edital, String token) {
+        restClient.post()
+                .uri("/editais/criar")
+                .header("Authorization", "Bearer " + token)
+                .body(edital)
+                .retrieve()
+                .body(String.class);
     }
 }

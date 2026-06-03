@@ -2,6 +2,7 @@ package com.bidding.system.frontend.model;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import org.springframework.format.annotation.DateTimeFormat;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -13,6 +14,7 @@ public class EditalDTO {
     private String descricao;
     @JsonProperty("data_fechamento")
     @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
+    @DateTimeFormat(pattern = "yyyy-MM-dd'T'HH:mm")
     private LocalDateTime dataFechamento;
     private String status;
 
@@ -68,13 +70,7 @@ public class EditalDTO {
     }
 
     public String getDataFechamentoFormatada() {
-        if (dataFechamento == null) {
-            return "-";
-        }
-
-        DateTimeFormatter formatter =
-                DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
-
-        return dataFechamento.format(formatter);
+        if (dataFechamento == null) return "-";
+        return dataFechamento.format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm"));
     }
 }
