@@ -1,35 +1,65 @@
 <!doctype html>
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
-    <title>Logar</title>
+    <title>EditaisGOV</title>
     <meta charset="UTF-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <link th:href="@{/webjars/bootstrap/5.3.8/css/bootstrap.min.css}" rel="stylesheet">
+    <link rel="icon" type="image/png" th:href="@{/edital-icon.png}">
+    <th:block th:replace="~{layout :: head-content}"></th:block>
+    <style>
+        .field-error {
+            display: none;
+            color: #dc3545;
+            font-size: 0.825rem;
+            margin-top: 0.25rem;
+        }
+        .field-error.visible {
+            display: block;
+        }
+        .form-control.is-invalid {
+            border-color: #dc3545;
+            box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.15);
+        }
+    </style>
 </head>
-<body class="bg-light">
-<div class="container mt-5">
+<body class="d-flex flex-column min-vh-100 bg-light">
+
+<div th:replace="~{layout :: navbar}"></div>
+
+<div class="container my-5 flex-grow-1">
     <div class="row justify-content-center">
         <div class="col-md-6 col-lg-4">
             <div class="card shadow-sm">
                 <div class="card-body p-4">
-                    <h2 class="text-center mb-4 text-primary">Acesso ao Sistema</h2>
+                    <h2 class="text-center mb-4 text-primary">EditaisGOV</h2>
 
-                    <div th:if="${errorMessage}" class="alert alert-danger" role="alert"
-                         th:text="${errorMessage}"></div>
+                    <!-- Mensagem de sucesso (ex: cadastro realizado) -->
+                    <div th:if="${mensagemSucesso}" class="alert alert-success" role="alert"
+                         th:text="${mensagemSucesso}"></div>
 
-                    <form th:action="@{/logar}" th:object="${credenciais}" method="post">
+                    <!-- Erro do servidor oculto para JS processar -->
+                    <div th:if="${errorMessage}" id="server-error-text" style="display: none;" th:text="${errorMessage}"></div>
+
+                    <form th:action="@{/logar}" th:object="${credenciais}" method="post" id="formLogin" novalidate>
                         <div class="mb-3">
-                            <label class="form-label fw-bold">E-mail</label>
-                            <input type="email" class="form-control" th:field="*{email}" placeholder="Digite seu e-mail"
-                                   required/>
+                            <label for="email" class="form-label">E-mail</label>
+                            <input type="email" class="form-control" id="email" name="email"
+                                   th:value="${credenciais?.email}"
+                                   autocomplete="email"/>
+                            <div class="field-error" id="email-error"></div>
                         </div>
-                        <div class="mb-4">
-                            <label class="form-label fw-bold">Senha</label>
-                            <input type="password" class="form-control" th:field="*{senha}"
-                                   placeholder="Digite sua senha" required/>
+
+                        <div class="mb-3">
+                            <label for="senha" class="form-label">Senha</label>
+                            <div class="input-group">
+                                <input type="password" class="form-control" id="senha" name="senha" autocomplete="current-password"/>
+                                <button class="btn btn-outline-secondary" type="button" id="toggleSenha" tabindex="-1">Mostrar</button>
+                            </div>
+                            <div class="field-error" id="senha-error"></div>
                         </div>
+
                         <div class="d-grid">
-                            <button type="submit" class="btn btn-primary btn-lg">Logar</button>
+                            <button type="submit" class="btn btn-primary btn-lg" id="btn-logar">Logar</button>
                         </div>
                         <div class="text-center mt-3">
                             <a class="text-decoration-none" th:href="@{/registrar}">Não tem uma conta? Registre-se</a>
@@ -41,5 +71,105 @@
     </div>
 </div>
 <script th:src="@{/webjars/bootstrap/5.3.8/js/bootstrap.bundle.min.js}"></script>
+<script>
+    (function () {
+        const emailInput  = document.getElementById('email');
+        const senhaInput  = document.getElementById('senha');
+        const emailError  = document.getElementById('email-error');
+        const senhaError  = document.getElementById('senha-error');
+        const form        = document.getElementById('formLogin');
+        const serverErrorText = document.getElementById('server-error-text');
+
+        /* ── Helpers ── */
+        function showError(input, errorEl, message) {
+            errorEl.textContent = message;
+            input.classList.add('is-invalid');
+            errorEl.classList.add('visible');
+        }
+
+        function clearError(input, errorEl) {
+            input.classList.remove('is-invalid');
+            errorEl.classList.remove('visible');
+            errorEl.textContent = '';
+        }
+
+        function isValidEmail(value) {
+            return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim());
+        }
+
+        function validateEmail() {
+            const val = emailInput.value.trim();
+            if (val === '') {
+                showError(emailInput, emailError, 'O e-mail não pode ser vazio.');
+                return false;
+            } else if (!isValidEmail(val)) {
+                showError(emailInput, emailError, 'Insira um e-mail válido (ex: usuario@email.com).');
+                return false;
+            } else {
+                clearError(emailInput, emailError);
+                return true;
+            }
+        }
+
+        function validateSenha() {
+            if (senhaInput.value.length === 0) {
+                showError(senhaInput, senhaError, 'A senha não pode ser vazia.');
+                return false;
+            } else {
+                clearError(senhaInput, senhaError);
+                return true;
+            }
+        }
+
+        /* ── Validação ao sair do campo (blur) ── */
+        emailInput.addEventListener('blur', validateEmail);
+        senhaInput.addEventListener('blur', validateSenha);
+
+        /* ── Remove erro enquanto o usuário corrige ── */
+        emailInput.addEventListener('input', function () {
+            const val = this.value.trim();
+            if (val === '' || isValidEmail(val)) {
+                clearError(this, emailError);
+            } else if (this.classList.contains('is-invalid')) {
+                showError(this, emailError, 'Insira um e-mail válido (ex: usuario@email.com).');
+            }
+        });
+
+        senhaInput.addEventListener('input', function () {
+            if (this.value.length > 0) clearError(this, senhaError);
+        });
+
+        /* ── Validação completa no submit ── */
+        form.addEventListener('submit', function (e) {
+            const emailOk = validateEmail();
+            const senhaOk = validateSenha();
+            if (!emailOk || !senhaOk) e.preventDefault();
+        });
+
+        /* ── Alternar Visibilidade da Senha ── */
+        const btnToggle = document.getElementById('toggleSenha');
+        if (btnToggle) {
+            btnToggle.addEventListener('click', function() {
+                const type = senhaInput.getAttribute('type') === 'password' ? 'text' : 'password';
+                senhaInput.setAttribute('type', type);
+                this.textContent = type === 'password' ? 'Mostrar' : 'Ocultar';
+            });
+        }
+
+        /* ── Ao carregar com erro do servidor ── */
+        if (serverErrorText) {
+            senhaInput.value = ''; // Limpa a senha
+            const msg = serverErrorText.textContent.toLowerCase();
+            if (msg.includes('senha') || msg.includes('credenciais') || msg.includes('password')) {
+                showError(senhaInput, senhaError, serverErrorText.textContent);
+            } else {
+                showError(emailInput, emailError, serverErrorText.textContent);
+            }
+        }
+    })();
+</script>
+
+<div th:replace="~{layout :: footer}"></div>
+
 </body>
 </html>

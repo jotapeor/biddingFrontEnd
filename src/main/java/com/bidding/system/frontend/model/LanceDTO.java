@@ -1,24 +1,28 @@
 package com.bidding.system.frontend.model;
 
-import java.sql.Date;
+import com.fasterxml.jackson.annotation.JsonFormat;
+import java.time.LocalDateTime;
 
 public class LanceDTO {
 
     private Long id;
     private double valor;
-    private Date data_lance;
-    private long idEdital;
-    private long idUsuario;
+    
+    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
+    private LocalDateTime data_lance;
+    
+    private Long id_edital;
+    private Long id_usuario;
 
     public LanceDTO() {
     }
 
-    public LanceDTO(Long id, double valor, Date data_lance, long idEdital, long idUsuario) {
+    public LanceDTO(Long id, double valor, LocalDateTime data_lance, Long id_edital, Long id_usuario) {
         this.id = id;
         this.valor = valor;
         this.data_lance = data_lance;
-        this.idEdital = idEdital;
-        this.idUsuario = idUsuario;
+        this.id_edital = id_edital;
+        this.id_usuario = id_usuario;
     }
 
     public Long getId() {
@@ -37,28 +41,27 @@ public class LanceDTO {
         this.valor = valor;
     }
 
-    public Date getData_lance() {
+    public LocalDateTime getData_lance() {
         return data_lance;
     }
 
-    public void setData_lance(Date data_lance) {
+    public void setData_lance(LocalDateTime data_lance) {
         this.data_lance = data_lance;
     }
 
-    public long getIdEdital() {
-        return idEdital;
+    public Long getId_edital() {
+        return id_edital;
     }
 
-    public void setIdEdital(long idEdital) {
-        this.idEdital = idEdital;
+    public void setId_edital(Long id_edital) {
+        this.id_edital = id_edital;
     }
 
-    public long getIdUsuario() {
-        return idUsuario;
+    public Long getId_usuario() {
+        return id_usuario;
     }
 
-    public void setIdUsuario(long idUsuario) {
-        this.idUsuario = idUsuario;
+    public void setId_usuario(Long id_usuario) {
+        this.id_usuario = id_usuario;
     }
-
 }

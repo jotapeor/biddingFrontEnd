@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EditaisGOV - Início</title>
+    <link rel="icon" type="image/png" th:href="@{/edital-icon.png}">
+    <th:block th:replace="~{layout :: head-content}"></th:block>
+</head>
+<body class="d-flex flex-column min-vh-100 bg-light">
+
+<div th:replace="~{layout :: navbar}"></div>
+
+<div class="container mt-5 flex-grow-1 text-center">
+    <div class="py-5">
+        <h1 class="display-4 text-primary fw-bold mb-3">Bem-vindo ao EditaisGOV</h1>
+        <p class="lead text-muted mb-5">
+            O portal definitivo para criar editais e participar de pregões eletrônicos de forma rápida e segura.
+        </p>
+        <div class="d-flex justify-content-center gap-3">
+            <a th:href="@{/login}" class="btn btn-primary btn-lg shadow-sm px-5">Fazer Login</a>
+            <a th:href="@{/registrar}" class="btn btn-outline-secondary btn-lg shadow-sm px-5">Criar Conta</a>
+        </div>
+    </div>
+    <div class="row mt-5 pt-4 text-start">
+        <div class="col-md-4 mb-4">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <h5 class="card-title text-success">Para Compradores</h5>
+                    <p class="card-text text-muted">Crie editais com facilidade, acompanhe as disputas em tempo real e encontre a melhor proposta para o seu projeto.</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-4">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <h5 class="card-title text-primary">Para Fornecedores</h5>
+                    <p class="card-text text-muted">Acesse editais abertos, envie seus lances de forma segura e acompanhe seus resultados em um painel exclusivo.</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-4">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <h5 class="card-title text-info">Total Transparência</h5>
+                    <p class="card-text text-muted">Histórico de lances completo, status de fechamento automático e visibilidade do resultado após o encerramento.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div th:replace="~{layout :: footer}"></div>
+
+<script th:src="@{/webjars/bootstrap/5.3.8/js/bootstrap.bundle.min.js}"></script>
+</body>
+</html>

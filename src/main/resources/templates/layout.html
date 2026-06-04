@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <!-- Este fragmento de head pode ser incluido pelas paginas se desejarem -->
+    <th:block th:fragment="head-content">
+        <link th:href="@{/webjars/bootstrap/5.3.8/css/bootstrap.min.css}" rel="stylesheet">
+        <link th:href="@{/css/style.css}" rel="stylesheet">
+    </th:block>
+</head>
+<body class="d-flex flex-column min-vh-100">
+
+<nav th:fragment="navbar" class="navbar navbar-expand-lg navbar-dark bg-primary shadow-sm mb-4">
+    <div class="container">
+        <a class="navbar-brand fw-bold" th:href="@{/}">EditaisGOV</a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav me-auto">
+                <li class="nav-item" th:if="${session.token != null}">
+                    <a class="nav-link text-white" th:href="@{/editais}">Editais</a>
+                </li>
+                <!-- Novo Edital (apenas COMPRADOR ou roles diferentes de fornecedor) -->
+                <li class="nav-item" th:if="${session.role != 'FORNECEDOR' and session.role != null}">
+                    <a class="nav-link text-white" th:href="@{/novo-edital}">Novo Edital</a>
+                </li>
+                <!-- Meus Lances (apenas FORNECEDOR) -->
+                <li class="nav-item" th:if="${session.role == 'FORNECEDOR'}">
+                    <a class="nav-link text-white" th:href="@{/meus-lances}">Meus Lances</a>
+                </li>
+            </ul>
+            <div class="d-flex align-items-center gap-2">
+                <!-- Bem-vindo, nome -->
+                <div th:if="${session.nome != null}" class="d-flex flex-column align-items-end me-1">
+                    <span class="text-white fw-semibold" style="font-size:0.85rem;" th:text="'Bem-vindo, ' + ${session.nome}"></span>
+                    <span class="text-white-50" style="font-size:0.72rem;" th:text="${session.email}"></span>
+                </div>
+                <div th:if="${session.nome == null and session.email != null}" class="text-white-50 small me-2" th:text="${session.email}"></div>
+                <span class="badge bg-white text-primary" th:if="${session.role != null}" th:text="${session.role}"></span>
+                <a th:if="${session.token != null}" th:href="@{/logout}" class="btn btn-outline-light btn-sm ms-1">Sair</a>
+            </div>
+        </div>
+    </div>
+</nav>
+
+<!-- Footer Fragment -->
+<footer th:fragment="footer" class="bg-dark text-white-50 mt-auto py-3">
+    <div class="container text-center">
+        <small>&copy; 2026 EditaisGOV. Todos os direitos reservados.</small>
+    </div>
+</footer>
+
+</body>
+</html>

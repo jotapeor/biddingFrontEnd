@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="'EditaisGOV - ' + ${edital.titulo}">EditaisGOV - Detalhes do Edital</title>
+    <link rel="icon" type="image/png" th:href="@{/edital-icon.png}">
+    <th:block th:replace="~{layout :: head-content}"></th:block>
+    <style>
+        .field-error {
+            display: none;
+            color: #dc3545;
+            font-size: 0.825rem;
+            margin-top: 0.25rem;
+        }
+        .field-error.visible {
+            display: block;
+        }
+        .form-control.is-invalid {
+            border-color: #dc3545;
+            box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.15);
+        }
+    </style>
+</head>
+<body class="d-flex flex-column min-vh-100 bg-light">
+
+<div th:replace="~{layout :: navbar}"></div>
+
+<div class="container mt-4 flex-grow-1">
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div class="d-flex align-items-center gap-3">
+            <a th:href="@{/editais}" class="btn btn-outline-secondary btn-sm shadow-sm">&larr; Editais</a>
+            <h1 class="h2 text-primary mb-0">Detalhes do Edital</h1>
+        </div>
+        <a th:href="@{/editais/{id}/lances(id=${edital.id})}" class="btn btn-outline-primary shadow-sm">
+            Ver Lances &rarr;
+        </a>
+    </div>
+
+    <!-- Mensagens de Sucesso / Erro -->
+    <div th:if="${mensagemSucesso}" class="alert alert-success alert-dismissible fade show shadow-sm" role="alert">
+        <strong>Sucesso!</strong> <span th:text="${mensagemSucesso}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fechar"></button>
+    </div>
+    <!-- Erro do servidor (inline, mesmo padrão dos campos) -->
+    <div th:if="${errorMessage}" class="field-error visible mb-3" th:text="${errorMessage}"></div>
+
+    <div class="row g-4">
+        <!-- Coluna Esquerda: Informações do Edital -->
+        <div class="col-lg-7">
+            <div class="card shadow-sm h-100">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0 fs-5" th:text="${edital.titulo}">Título do Edital</h4>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-4">
+                        <div class="col-sm-4 mb-3 mb-sm-0">
+                            <span class="text-muted text-uppercase small fw-bold">Nº do Edital</span>
+                            <div class="fs-5 fw-semibold" th:text="'#' + ${edital.id}">#1</div>
+                        </div>
+                        <div class="col-sm-4 mb-3 mb-sm-0">
+                            <span class="text-muted text-uppercase small fw-bold">Status</span>
+                            <div>
+                                <span class="badge px-3 py-2"
+                                      th:classappend="${edital.status == 'ABERTO'} ? 'bg-success' : 'bg-secondary'"
+                                      th:text="${edital.status}">
+                                </span>
+                            </div>
+                        </div>
+                        <div class="col-sm-4">
+                            <span class="text-muted text-uppercase small fw-bold">Data de Fechamento</span>
+                            <div class="fs-6 fw-semibold mt-1" th:text="${edital.dataFechamentoFormatada}">-</div>
+                        </div>
+                    </div>
+
+                    <div>
+                        <span class="text-muted text-uppercase small fw-bold">Descrição</span>
+                        <p class="mt-2 text-dark" style="white-space: pre-wrap;" th:text="${edital.descricao}">Descrição do edital.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Coluna Direita: Envio de Lance -->
+        <div class="col-lg-5">
+
+            <!-- Formulário de lance para Fornecedor logado em edital Aberto -->
+            <div th:if="${role == 'FORNECEDOR' and edital.status == 'ABERTO'}" class="card shadow-sm border-success mb-4">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0">Enviar Lance</h5>
+                </div>
+                <div class="card-body bg-success bg-opacity-10">
+                    <form th:action="@{/editais/{id}/lances(id=${edital.id})}" method="post" id="formLance" novalidate>
+                        <div class="mb-3">
+                            <label for="valor" class="form-label fw-bold text-success">Valor do Lance (R$)</label>
+                            <div class="input-group input-group-lg">
+                                <span class="input-group-text border-success text-success bg-white">R$</span>
+                                <input type="number" id="valor" name="valor"
+                                       class="form-control border-success"
+                                       placeholder="0.00" step="0.01" min="0.01">
+                            </div>
+                            <div class="field-error" id="valor-error"></div>
+                            <div class="form-text">Informe o valor em reais usando ponto (Ex: 1500.00)</div>
+                        </div>
+                        <div class="d-grid mt-4">
+                            <button type="submit" class="btn btn-success btn-lg fw-bold shadow-sm" id="btnEnviarLance">
+                                Confirmar Lance
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Aviso de edital fechado para fornecedor -->
+            <div th:if="${role == 'FORNECEDOR' and edital.status != 'ABERTO'}" class="card shadow-sm border-secondary mb-4 bg-light">
+                <div class="card-body text-center text-secondary py-4">
+                    <h5 class="mb-3">Edital Fechado</h5>
+                    <p class="mb-0">Este edital não está mais aceitando novos lances.</p>
+                </div>
+            </div>
+
+            <!-- Aviso para usuários que não são fornecedores -->
+            <div th:if="${role != 'FORNECEDOR'}" class="card shadow-sm border-info mb-4 bg-light">
+                <div class="card-body text-info text-center py-4">
+                    <h5 class="mb-3">Modo Visualização</h5>
+                    <p class="mb-0 text-dark">Apenas usuários cadastrados como <strong>FORNECEDOR</strong> podem enviar lances em editais abertos.</p>
+                </div>
+            </div>
+
+            <!-- Regras básicas -->
+            <div class="card shadow-sm">
+                <div class="card-header bg-light">
+                    <h6 class="mb-0 text-muted">Regras do Lance</h6>
+                </div>
+                <div class="card-body">
+                    <ul class="mb-0 small text-muted">
+                        <li class="mb-2">Apenas fornecedores podem enviar lances.</li>
+                        <li class="mb-2">O edital precisa estar no status <strong>ABERTO</strong>.</li>
+                        <li>Cada fornecedor pode enviar apenas <strong>um lance por edital</strong>.</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div th:replace="~{layout :: footer}"></div>
+
+<script th:src="@{/webjars/bootstrap/5.3.8/js/bootstrap.bundle.min.js}"></script>
+<script>
+    (function () {
+        const form       = document.getElementById('formLance');
+        const btn        = document.getElementById('btnEnviarLance');
+        const valorInput = document.getElementById('valor');
+        const valorError = document.getElementById('valor-error');
+
+        if (!form || !valorInput) return;
+
+        function showError(input, errorEl, message) {
+            errorEl.textContent = message;
+            input.classList.add('is-invalid');
+            errorEl.classList.add('visible');
+        }
+
+        function clearError(input, errorEl) {
+            input.classList.remove('is-invalid');
+            errorEl.classList.remove('visible');
+            errorEl.textContent = '';
+        }
+
+        function validateValor() {
+            const val = valorInput.value;
+            if (val === '' || val === null) {
+                showError(valorInput, valorError, 'O valor do lance não pode ser vazio.');
+                return false;
+            } else if (parseFloat(val) <= 0) {
+                showError(valorInput, valorError, 'O valor do lance deve ser maior que zero.');
+                return false;
+            }
+            clearError(valorInput, valorError);
+            return true;
+        }
+
+        /* ── Validação ao sair do campo (blur) ── */
+        valorInput.addEventListener('blur', validateValor);
+
+        /* ── Remove erro enquanto o usuário corrige ── */
+        valorInput.addEventListener('input', function () {
+            if (this.value !== '' && parseFloat(this.value) > 0) {
+                clearError(this, valorError);
+            } else if (this.classList.contains('is-invalid')) {
+                validateValor();
+            }
+        });
+
+        /* ── Validação no submit + prevenção de duplo envio ── */
+        form.addEventListener('submit', function (e) {
+            if (!validateValor()) {
+                e.preventDefault();
+                return;
+            }
+            btn.disabled = true;
+            btn.textContent = 'Enviando...';
+        });
+    })();
+</script>
+</body>
+</html>
