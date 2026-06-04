@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Erro Interno</title>
+    <th:block th:replace="~{layout :: head-content}"></th:block>
+</head>
+<body class="d-flex flex-column min-vh-100 bg-light">
+
+<div th:replace="~{layout :: navbar}"></div>
+
+<div class="container text-center mt-5">
+    <h1 class="display-1 text-danger fw-bold">500</h1>
+    <h3 class="mb-4">Erro Interno do Servidor</h3>
+    <p class="lead text-muted mb-5">Ocorreu um problema inesperado nos nossos servidores. Tente novamente mais tarde.</p>
+    <a th:href="@{/editais}" class="btn btn-primary btn-lg px-5 shadow-sm">Voltar ao Início</a>
+</div>
+
+<div th:replace="~{layout :: footer}"></div>
+
+<script th:src="@{/webjars/bootstrap/5.3.8/js/bootstrap.bundle.min.js}"></script>
+</body>
+</html>

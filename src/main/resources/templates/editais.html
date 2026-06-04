@@ -2,77 +2,112 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <title>Lista de Editais</title>
-    <link th:href="@{/webjars/bootstrap/5.3.8/css/bootstrap.min.css}" rel="stylesheet">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EditaisGOV - Lista</title>
+    <link rel="icon" type="image/png" th:href="@{/edital-icon.png}">
+    <th:block th:replace="~{layout :: head-content}"></th:block>
 </head>
-<body class="bg-light">
-<div class="container mt-5">
+<body class="d-flex flex-column min-vh-100 bg-light">
+
+<!-- Navbar Fragment -->
+<div th:replace="~{layout :: navbar}"></div>
+
+<div class="container mt-4 flex-grow-1">
+
+    <!-- Mensagens de Sucesso / Erro -->
+    <div th:if="${mensagemSucesso}" class="alert alert-success alert-dismissible fade show shadow-sm" role="alert">
+        <strong>Sucesso!</strong> <span th:text="${mensagemSucesso}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fechar"></button>
+    </div>
+    <div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show shadow-sm" role="alert">
+        <strong>Atenção:</strong> <span th:text="${errorMessage}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fechar"></button>
+    </div>
 
     <div class="d-flex justify-content-between align-items-center mb-4">
-        <h1 class="h2 text-primary mb-0">Lista de Editais</h1>
-        <div>
-            <a th:if="${role == 'COMPRADOR'}" th:href="@{/novo-edital}" class="btn btn-success shadow-sm">
-                + Criar Novo Edital
-            </a>
-            <a th:href="@{/logout}" class="btn btn-outline-danger ms-2 shadow-sm">Logout</a>
-        </div>
+        <h1 class="h2 text-primary mb-0">Sistema de Editais</h1>
+        <a th:if="${role != 'FORNECEDOR'}" th:href="@{/novo-edital}" class="btn btn-success shadow-sm">
+            &#43; Novo Edital
+        </a>
     </div>
 
     <div class="card shadow-sm mb-4">
-        <div class="card-body">
-            <form th:action="@{/editais}" method="get" class="row g-3 align-items-center">
-                <div class="col-auto">
-                    <div class="form-check form-switch mt-2">
-                        <input class="form-check-input" type="checkbox" role="switch" name="urgente" value="true"
-                               id="urgenteCheck" th:checked="${urgente}"/>
-                        <label class="form-check-label fw-bold text-danger" for="urgenteCheck">
-                            Mostrar apenas urgentes (ABERTOS fechando em 48h)
-                        </label>
-                    </div>
+        <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+            <h5 class="mb-0 text-dark">Editais Disponíveis</h5>
+            <form th:action="@{/editais}" method="get" class="d-flex align-items-center m-0">
+                <div class="form-check form-switch me-3">
+                    <input class="form-check-input" type="checkbox" role="switch" id="urgenteSwitch" name="urgente" th:checked="${param.urgente != null}">
+                    <label class="form-check-label text-danger fw-bold" for="urgenteSwitch">Apenas Urgentes</label>
                 </div>
-                <div class="col-auto ms-auto">
-                    <button type="submit" class="btn btn-primary btn-sm px-3">Filtrar</button>
-                    <button type="button" class="btn btn-secondary btn-sm px-3 ms-2"
-                            th:onclick="'window.location.href=\'' + @{/editais} + '\'; return false'">Limpar Filtros
-                    </button>
-                </div>
+                <button type="submit" class="btn btn-sm btn-outline-secondary">Filtrar</button>
             </form>
         </div>
-    </div>
-
-    <div class="card shadow-sm">
         <div class="card-body p-0">
             <div class="table-responsive">
                 <table class="table table-striped table-hover mb-0 align-middle">
-                    <thead class="table-dark">
+                    <thead class="table-light">
                     <tr>
-                        <th scope="col" class="px-3">ID</th>
-                        <th scope="col">Título</th>
-                        <th scope="col">Descrição</th>
+                        <th scope="col" class="px-4"># ID</th>
+                        <th scope="col">Título do Edital</th>
                         <th scope="col">Data de Fechamento</th>
                         <th scope="col">Status</th>
+                        <th scope="col" class="text-end px-4">Ação</th>
                     </tr>
                     </thead>
                     <tbody>
-                    <tr th:each="edital : ${editais}">
-                        <td class="px-3 fw-bold" th:text="${edital.id}"></td>
-                        <td th:text="${edital.titulo}"></td>
-                        <td class="text-muted" th:text="${edital.descricao}"></td>
-                        <td th:text="${edital.dataFechamentoFormatada}"></td>
+                    <tr th:each="edital : ${editais}" class="card-hover">
+                        <th scope="row" class="px-4 text-muted" th:text="${edital.id}">1</th>
+                        <td class="fw-semibold text-dark" th:text="${edital.titulo}">Título</td>
                         <td>
-                            <span class="badge bg-primary" th:text="${edital.status}"></span>
+                            <span class="data-fechamento" th:attr="data-time=${edital.dataFechamento}" th:text="${edital.dataFechamentoFormatada}"></span>
+                        </td>
+                        <td>
+                            <span class="badge px-2 py-1"
+                                  th:classappend="${edital.status == 'ABERTO'} ? 'bg-success' : 'bg-secondary'"
+                                  th:text="${edital.status}">
+                            </span>
+                            <span class="badge bg-danger ms-1 badge-urgent d-none" th:id="'badge-urgent-' + ${edital.id}">Encerrando em breve!</span>
+                        </td>
+                        <td class="text-end px-4">
+                            <a th:href="@{/editais/{id}(id=${edital.id})}" class="btn btn-primary btn-sm px-3 shadow-sm">
+                                Ver Detalhes
+                            </a>
                         </td>
                     </tr>
                     <tr th:if="${#lists.isEmpty(editais)}">
-                        <td colspan="5" class="text-center py-4 text-muted">Nenhum edital encontrado.</td>
+                        <td colspan="5" class="text-center py-5 text-muted">
+                            Nenhum edital encontrado no momento.
+                        </td>
                     </tr>
                     </tbody>
                 </table>
             </div>
         </div>
     </div>
-
 </div>
+
+<div th:replace="~{layout :: footer}"></div>
+
 <script th:src="@{/webjars/bootstrap/5.3.8/js/bootstrap.bundle.min.js}"></script>
+<script>
+    // Script para exibir badge de urgente (fechando em menos de 48h)
+    document.addEventListener("DOMContentLoaded", function() {
+        const rows = document.querySelectorAll('.data-fechamento');
+        const now = new Date().getTime();
+        const limit = 48 * 60 * 60 * 1000; // 48 horas em milissegundos
+        
+        rows.forEach(function(row) {
+            const timeStr = row.getAttribute('data-time');
+            if (timeStr) {
+                const closeDate = new Date(timeStr).getTime();
+                const diff = closeDate - now;
+                if (diff > 0 && diff < limit) {
+                    const id = row.closest('tr').querySelector('.badge-urgent').id;
+                    document.getElementById(id).classList.remove('d-none');
+                }
+            }
+        });
+    });
+</script>
 </body>
 </html>

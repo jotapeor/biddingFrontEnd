@@ -1,0 +1,38 @@
+/* src/main/resources/static/css/style.css */
+body {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+main {
+    flex: 1;
+}
+
+/* Transições suaves para botões e links */
+.btn, .nav-link {
+    transition: all 0.2s ease-in-out;
+}
+
+.btn:hover {
+    transform: translateY(-1px);
+}
+
+/* Estilo para cartões com leve flutuação ao passar o mouse */
+.card-hover {
+    transition: box-shadow 0.2s ease-in-out, transform 0.2s ease-in-out;
+}
+.card-hover:hover {
+    box-shadow: 0 .5rem 1rem rgba(0,0,0,.15)!important;
+    transform: translateY(-2px);
+}
+
+/* Badge pulsar para editais urgentes */
+@keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+    100% { transform: scale(1); }
+}
+.badge-urgent {
+    animation: pulse 1.5s infinite;
+}

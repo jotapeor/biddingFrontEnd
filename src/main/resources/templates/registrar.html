@@ -1,45 +1,73 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
-    <title>Cadastrar</title>
+    <title>EditaisGOV</title>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link th:href="@{/webjars/bootstrap/5.3.8/css/bootstrap.min.css}" rel="stylesheet">
+    <link rel="icon" type="image/png" th:href="@{/edital-icon.png}">
+    <th:block th:replace="~{layout :: head-content}"></th:block>
+    <style>
+        /* Ajuste do toggle de senha para nao conflitar com os ícones de validação do Bootstrap */
+        .input-group.has-validation .form-control.is-invalid,
+        .input-group.has-validation .form-control.is-valid {
+            z-index: 2;
+        }
+    </style>
 </head>
-<body class="bg-light">
-<div class="container mt-5">
+<body class="d-flex flex-column min-vh-100 bg-light">
+
+<div th:replace="~{layout :: navbar}"></div>
+
+<div class="container my-5 flex-grow-1">
     <div class="row justify-content-center">
         <div class="col-md-8 col-lg-5">
             <div class="card shadow-sm">
                 <div class="card-body p-4">
-                    <h2 class="text-center mb-4 text-primary">Criar Conta</h2>
+                    <h2 class="text-center mb-4 text-primary">Cadastrar nova conta</h2>
 
-                    <div th:if="${errorMessage}" class="alert alert-danger" role="alert"
-                         th:text="${errorMessage}"></div>
+                    <!-- Erro do servidor oculto para JS processar -->
+                    <div th:if="${errorMessage}" id="server-error-text" style="display: none;" th:text="${errorMessage}"></div>
 
-                    <div id="error-message-js" class="alert alert-danger d-none" role="alert"></div>
+                    <form th:action="@{/registrar}" th:object="${user}" method="post" id="formCadastro" novalidate>
 
-                    <form th:action="@{/registrar}" th:object="${user}" method="post" id="formCadastro">
                         <div class="mb-3">
-                            <label class="form-label fw-bold">Nome</label>
-                            <input type="text" class="form-control" th:field="*{nome}" placeholder="Seu nome completo"
-                                   required/>
+                            <label for="nome" class="form-label">Nome</label>
+                            <input type="text" class="form-control" id="nome" name="nome"
+                                   th:value="${user?.nome}" autocomplete="name"/>
+                            <div class="invalid-feedback" id="nome-error"></div>
+                            <div class="valid-feedback" id="nome-success"></div>
                         </div>
+
                         <div class="mb-3">
-                            <label class="form-label fw-bold">Email</label>
-                            <input type="email" class="form-control" th:field="*{email}" placeholder="seu@email.com"
-                                   required/>
+                            <label for="email" class="form-label">E-mail</label>
+                            <input type="email" class="form-control" id="email" name="email"
+                                   th:value="${user?.email}" autocomplete="email"/>
+                            <div class="invalid-feedback" id="email-error"></div>
+                            <div class="valid-feedback" id="email-success"></div>
                         </div>
+
                         <div class="mb-3">
-                            <label class="form-label fw-bold">Senha</label>
-                            <input type="password" class="form-control" th:field="*{senha}" required/>
+                            <label for="senha" class="form-label">Senha</label>
+                            <div class="input-group has-validation">
+                                <input type="password" class="form-control" id="senha" name="senha" autocomplete="new-password"/>
+                                <button class="btn btn-outline-secondary" type="button" id="toggleSenha" tabindex="-1">Mostrar</button>
+                                <div class="invalid-feedback" id="senha-error"></div>
+                                <div class="valid-feedback" id="senha-success"></div>
+                            </div>
                         </div>
-                        <div class="mb-4">
-                            <label class="form-label fw-bold">Confirmar senha</label>
-                            <input type="password" class="form-control" th:field="*{confirmarSenha}" required/>
+
+                        <div class="mb-3">
+                            <label for="confirmarSenha" class="form-label">Confirmar Senha</label>
+                            <div class="input-group has-validation">
+                                <input type="password" class="form-control" id="confirmarSenha" name="confirmarSenha" autocomplete="new-password"/>
+                                <button class="btn btn-outline-secondary" type="button" id="toggleConfirmarSenha" tabindex="-1">Mostrar</button>
+                                <div class="invalid-feedback" id="confirmarSenha-error"></div>
+                                <div class="valid-feedback" id="confirmarSenha-success"></div>
+                            </div>
                         </div>
+
                         <div class="d-grid">
-                            <button type="submit" class="btn btn-primary btn-lg">Cadastrar</button>
+                            <button type="submit" class="btn btn-primary btn-lg" id="btn-cadastrar">Cadastrar</button>
                         </div>
                         <div class="text-center mt-3">
                             <a class="text-decoration-none" th:href="@{/login}">Já tem uma conta? Faça login</a>
@@ -51,22 +79,256 @@
     </div>
 </div>
 <script th:src="@{/webjars/bootstrap/5.3.8/js/bootstrap.bundle.min.js}"></script>
-
 <script>
-    document.getElementById('formCadastro').addEventListener('submit', function (event) {
-        const senha = document.getElementById('senha').value;
-        const confirmarSenha = document.getElementById('confirmarSenha').value;
-        const alertaErro = document.getElementById('error-message-js');
+    (function () {
+        const nomeInput      = document.getElementById('nome');
+        const emailInput     = document.getElementById('email');
+        const senhaInput     = document.getElementById('senha');
+        const confirmarInput = document.getElementById('confirmarSenha');
 
-        if (senha !== confirmarSenha) {
-            event.preventDefault();
-            alertaErro.textContent = "As senhas não coincidem. Por favor, verifique.";
-            alertaErro.classList.remove('d-none');
-            document.getElementById('confirmarSenha').focus();
-        } else {
-            alertaErro.classList.add('d-none');
+        const nomeError      = document.getElementById('nome-error');
+        const emailError     = document.getElementById('email-error');
+        const senhaError     = document.getElementById('senha-error');
+        const confirmarError = document.getElementById('confirmarSenha-error');
+
+        const form = document.getElementById('formCadastro');
+        const serverErrorText = document.getElementById('server-error-text');
+
+        /* ── Helpers ── */
+        function showError(input, errorEl, successEl, message) {
+            errorEl.textContent = message;
+            input.classList.remove('is-valid');
+            input.classList.add('is-invalid');
+            if(successEl) successEl.textContent = '';
         }
-    });
+
+        function showSuccess(input, errorEl, successEl, message) {
+            successEl.textContent = message;
+            input.classList.remove('is-invalid');
+            input.classList.add('is-valid');
+            if(errorEl) errorEl.textContent = '';
+        }
+
+        function clearFeedback(input, errorEl, successEl) {
+            input.classList.remove('is-invalid', 'is-valid');
+            if(errorEl) errorEl.textContent = '';
+            if(successEl) successEl.textContent = '';
+        }
+
+        function isValidEmail(value) {
+            return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim());
+        }
+
+        /* ── Funções de validação individuais ── */
+        function validateNome() {
+            const val = nomeInput.value.trim();
+            const errEl = document.getElementById('nome-error');
+            const sucEl = document.getElementById('nome-success');
+            if (val === '') {
+                showError(nomeInput, errEl, sucEl, 'O nome não pode ser vazio.');
+                return false;
+            } else if (val.length < 3) {
+                showError(nomeInput, errEl, sucEl, 'Insira um nome válido (mínimo de 3 letras).');
+                return false;
+            }
+            // Temporariamente definimos como válido, será sobreposto pelo fetch se existir
+            showSuccess(nomeInput, errEl, sucEl, 'Nome válido e pronto para uso.');
+            return true;
+        }
+
+        function validateEmail() {
+            const val = emailInput.value.trim();
+            const errEl = document.getElementById('email-error');
+            const sucEl = document.getElementById('email-success');
+            if (val === '') {
+                showError(emailInput, errEl, sucEl, 'O e-mail não pode ser vazio.');
+                return false;
+            } else if (!isValidEmail(val)) {
+                showError(emailInput, errEl, sucEl, 'E-mail com formato inválido.');
+                return false;
+            }
+            // Temporariamente definimos como válido, será sobreposto pelo fetch se existir
+            showSuccess(emailInput, errEl, sucEl, 'E-mail válido e pronto para uso.');
+            return true;
+        }
+
+        function validateSenha() {
+            const val = senhaInput.value;
+            const errEl = document.getElementById('senha-error');
+            const sucEl = document.getElementById('senha-success');
+            if (val.length === 0) {
+                showError(senhaInput, errEl, sucEl, 'A senha não pode ser vazia.');
+                return false;
+            } else if (val.length < 8) {
+                showError(senhaInput, errEl, sucEl, 'A senha deve ter pelo menos 8 caracteres.');
+                return false;
+            } else if (!/[A-Z]/.test(val)) {
+                showError(senhaInput, errEl, sucEl, 'A senha deve conter pelo menos uma letra maiúscula.');
+                return false;
+            } else if (!/[0-9]/.test(val)) {
+                showError(senhaInput, errEl, sucEl, 'A senha deve conter pelo menos um número.');
+                return false;
+            } else if (!/[!@#$%^&*(),.?":{}|<>\-_+=\[\]]/.test(val)) {
+                showError(senhaInput, errEl, sucEl, 'A senha deve conter pelo menos um caractere especial.');
+                return false;
+            }
+            showSuccess(senhaInput, errEl, sucEl, 'Senha forte e válida.');
+            return true;
+        }
+
+        function validateConfirmar() {
+            const val = confirmarInput.value;
+            const errEl = document.getElementById('confirmarSenha-error');
+            const sucEl = document.getElementById('confirmarSenha-success');
+            if (val.length === 0) {
+                showError(confirmarInput, errEl, sucEl, 'Confirme sua senha.');
+                return false;
+            } else if (val !== senhaInput.value) {
+                showError(confirmarInput, errEl, sucEl, 'As senhas não coincidem.');
+                return false;
+            }
+            showSuccess(confirmarInput, errEl, sucEl, 'As senhas coincidem.');
+            return true;
+        }
+
+        /* ── Validação ao sair do campo (blur) ── */
+        nomeInput.addEventListener('blur', validateNome);
+        emailInput.addEventListener('blur', validateEmail);
+        senhaInput.addEventListener('blur', validateSenha);
+        confirmarInput.addEventListener('blur', validateConfirmar);
+
+        /* ── Eventos de digitação (input) ── */
+        const doneTypingInterval = 500; // tempo de espera apos parar de digitar
+
+        let typingTimerNome;
+        const knownTakenNames = new Set();
+        
+        nomeInput.addEventListener('input', function () {
+            clearTimeout(typingTimerNome);
+            const val = this.value.trim();
+            const errEl = document.getElementById('nome-error');
+            const sucEl = document.getElementById('nome-success');
+
+            if (val === '' || val.length < 3) {
+                validateNome(); // mostrar erro de tamanho
+            } else if (knownTakenNames.has(val.toLowerCase())) {
+                showError(nomeInput, errEl, sucEl, 'Este nome já está em uso.');
+            } else {
+                clearFeedback(nomeInput, errEl, sucEl);
+                typingTimerNome = setTimeout(() => {
+                    fetch('/api/verificar-nome?nome=' + encodeURIComponent(val))
+                        .then(res => res.json())
+                        .then(exists => {
+                            if (exists) {
+                                knownTakenNames.add(val.toLowerCase());
+                                showError(nomeInput, errEl, sucEl, 'Este nome já está em uso.');
+                            } else {
+                                showSuccess(nomeInput, errEl, sucEl, 'Nome válido e disponível!');
+                            }
+                        })
+                        .catch(err => {
+                            showSuccess(nomeInput, errEl, sucEl, 'Nome válido.');
+                        });
+                }, doneTypingInterval);
+            }
+        });
+
+        let typingTimer;
+        const knownTakenEmails = new Set();
+
+        emailInput.addEventListener('input', function () {
+            clearTimeout(typingTimer);
+            const val = this.value.trim();
+            const errEl = document.getElementById('email-error');
+            const sucEl = document.getElementById('email-success');
+
+            if (val === '' || !isValidEmail(val)) {
+                validateEmail(); // mostrar erro de formato em tempo real
+            } else if (knownTakenEmails.has(val.toLowerCase())) {
+                // E-mail que já tentamos e o servidor rejeitou
+                showError(emailInput, errEl, sucEl, 'Este e-mail já está em uso.');
+            } else {
+                // Remove erro e checa no servidor em tempo real
+                clearFeedback(emailInput, errEl, sucEl);
+                typingTimer = setTimeout(() => {
+                    fetch('/api/verificar-email?email=' + encodeURIComponent(val))
+                        .then(res => res.json())
+                        .then(exists => {
+                            if (exists) {
+                                knownTakenEmails.add(val.toLowerCase());
+                                showError(emailInput, errEl, sucEl, 'Este e-mail já está em uso.');
+                            } else {
+                                showSuccess(emailInput, errEl, sucEl, 'E-mail com formato válido e disponível.');
+                            }
+                        })
+                        .catch(err => {
+                            showSuccess(emailInput, errEl, sucEl, 'E-mail com formato válido.');
+                        });
+                }, doneTypingInterval);
+            }
+        });
+
+        senhaInput.addEventListener('input', function () {
+            validateSenha();
+            // Reavalia confirmação ao alterar senha
+            if (confirmarInput.value.length > 0) {
+                validateConfirmar();
+            }
+        });
+
+        confirmarInput.addEventListener('input', validateConfirmar);
+
+        /* ── Validação completa no submit ── */
+        form.addEventListener('submit', function (e) {
+            const nomeOk      = validateNome();
+            const emailOk     = validateEmail();
+            const senhaOk     = validateSenha();
+            const confirmarOk = validateConfirmar();
+            
+            // Se já foi marcado como inválido pela checagem em tempo real, impede envio
+            if (!nomeOk || !emailOk || !senhaOk || !confirmarOk || 
+                emailInput.classList.contains('is-invalid') || 
+                nomeInput.classList.contains('is-invalid')) {
+                e.preventDefault();
+            }
+        });
+
+        /* ── Alternar Visibilidade da Senha ── */
+        function setupToggle(btnId, inputId) {
+            const btn = document.getElementById(btnId);
+            const inp = document.getElementById(inputId);
+            if(btn && inp) {
+                btn.addEventListener('click', function() {
+                    const type = inp.getAttribute('type') === 'password' ? 'text' : 'password';
+                    inp.setAttribute('type', type);
+                    this.textContent = type === 'password' ? 'Mostrar' : 'Ocultar';
+                });
+            }
+        }
+        setupToggle('toggleSenha', 'senha');
+        setupToggle('toggleConfirmarSenha', 'confirmarSenha');
+
+        /* ── Distribuir erro do servidor ── */
+        if (serverErrorText) {
+            const msg = serverErrorText.textContent.toLowerCase();
+            const emailErrEl = document.getElementById('email-error');
+            const emailSucEl = document.getElementById('email-success');
+            const senhaErrEl = document.getElementById('senha-error');
+            const senhaSucEl = document.getElementById('senha-success');
+
+            if (msg.includes('email') || msg.includes('e-mail')) {
+                knownTakenEmails.add(emailInput.value.trim().toLowerCase());
+                showError(emailInput, emailErrEl, emailSucEl, serverErrorText.textContent);
+            } else if (msg.includes('senha')) {
+                showError(senhaInput, senhaErrEl, senhaSucEl, serverErrorText.textContent);
+            } else {
+                showError(emailInput, emailErrEl, emailSucEl, serverErrorText.textContent);
+            }
+        }
+    })();
 </script>
+
+<div th:replace="~{layout :: footer}"></div>
+
 </body>
 </html>

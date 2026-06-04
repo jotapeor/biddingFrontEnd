@@ -1,6 +1,7 @@
 package com.bidding.system.frontend.service;
 
 import com.bidding.system.frontend.model.EditalDTO;
+import com.bidding.system.frontend.model.LanceDTO;
 import com.bidding.system.frontend.model.UserDTO;
 import com.bidding.system.frontend.model.UserRequestDTO;
 
@@ -31,6 +32,34 @@ public class ApiService {
                 .body(String.class);
     }
 
+    public boolean verificarEmail(String email) {
+        try {
+            return Boolean.TRUE.equals(restClient.get()
+                    .uri(uriBuilder -> uriBuilder
+                            .path("/autenticar/verificar-email")
+                            .queryParam("email", email)
+                            .build())
+                    .retrieve()
+                    .body(Boolean.class));
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+    public boolean verificarNome(String nome) {
+        try {
+            return Boolean.TRUE.equals(restClient.get()
+                    .uri(uriBuilder -> uriBuilder
+                            .path("/autenticar/verificar-nome")
+                            .queryParam("nome", nome)
+                            .build())
+                    .retrieve()
+                    .body(Boolean.class));
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
     public String extrairRole(String token) {
         try {
             String[] partes = token.split("\\.");
@@ -44,6 +73,27 @@ public class ApiService {
             start += roleKey.length();
             int end = json.indexOf("\"", start);
             return json.substring(start, end);
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    public String extrairNome(String token) {
+        try {
+            String[] partes = token.split("\\.");
+            String payload = partes[1];
+            int padding = (4 - payload.length() % 4) % 4;
+            payload = payload + "=".repeat(padding);
+            String json = new String(Base64.getUrlDecoder().decode(payload), StandardCharsets.UTF_8);
+            for (String key : new String[]{"\"nome\":\"", "\"name\":\""}) {
+                int start = json.indexOf(key);
+                if (start != -1) {
+                    start += key.length();
+                    int end = json.indexOf("\"", start);
+                    return json.substring(start, end);
+                }
+            }
+            return null;
         } catch (Exception e) {
             return null;
         }
@@ -78,5 +128,48 @@ public class ApiService {
                 .body(edital)
                 .retrieve()
                 .body(String.class);
+    }
+
+    public EditalDTO buscarEdital(Long id, String token) {
+        return restClient.get()
+                .uri(uriBuilder -> uriBuilder
+                        .path("/editais/{id}")
+                        .build(id))
+                .header("Authorization", "Bearer " + token)
+                .retrieve()
+                .body(EditalDTO.class);
+    }
+
+    public void enviarLance(Long idEdital, LanceDTO lance, String token) {
+        restClient.post()
+                .uri(uriBuilder -> uriBuilder
+                        .path("/editais/{id}/lances")
+                        .build(idEdital))
+                .header("Authorization", "Bearer " + token)
+                .body(lance)
+                .retrieve()
+                .body(String.class);
+    }
+
+    public List<LanceDTO> listarLances(Long idEdital, String token) {
+        LanceDTO[] lances = restClient.get()
+                .uri(uriBuilder -> uriBuilder
+                        .path("/editais/{id}/lances")
+                        .build(idEdital))
+                .header("Authorization", "Bearer " + token)
+                .retrieve()
+                .body(LanceDTO[].class);
+
+        return Arrays.asList(lances);
+    }
+
+    public List<com.bidding.system.frontend.model.MeuLanceDTO> getMeusLances(String token) {
+        com.bidding.system.frontend.model.MeuLanceDTO[] lances = restClient.get()
+                .uri("/lances/meus-lances")
+                .header("Authorization", "Bearer " + token)
+                .retrieve()
+                .body(com.bidding.system.frontend.model.MeuLanceDTO[].class);
+
+        return Arrays.asList(lances);
     }
 }
