@@ -13,9 +13,11 @@
             font-size: 0.825rem;
             margin-top: 0.25rem;
         }
+
         .field-error.visible {
             display: block;
         }
+
         .form-control.is-invalid,
         .form-select.is-invalid {
             border-color: #dc3545;
@@ -60,7 +62,8 @@
                 <div class="mb-3">
                     <label for="descricao" class="form-label fw-bold">Descrição</label>
                     <textarea class="form-control" id="descricao" name="descricao" rows="4"
-                              th:field="*{descricao}" placeholder="Detalhes completos sobre o objeto da licitação..."></textarea>
+                              th:field="*{descricao}"
+                              placeholder="Detalhes completos sobre o objeto da licitação..."></textarea>
                     <div class="field-error" id="descricao-error"></div>
                 </div>
 
@@ -89,13 +92,13 @@
 <script th:src="@{/webjars/bootstrap/5.3.8/js/bootstrap.bundle.min.js}"></script>
 <script>
     (function () {
-        const tituloInput       = document.getElementById('titulo');
-        const descricaoInput    = document.getElementById('descricao');
-        const dataInput         = document.getElementById('dataFechamento');
+        const tituloInput = document.getElementById('titulo');
+        const descricaoInput = document.getElementById('descricao');
+        const dataInput = document.getElementById('dataFechamento');
 
-        const tituloError       = document.getElementById('titulo-error');
-        const descricaoError    = document.getElementById('descricao-error');
-        const dataError         = document.getElementById('dataFechamento-error');
+        const tituloError = document.getElementById('titulo-error');
+        const descricaoError = document.getElementById('descricao-error');
+        const dataError = document.getElementById('dataFechamento-error');
 
         const form = document.getElementById('formNovoEdital');
 
@@ -171,7 +174,7 @@
 
         descricaoInput.addEventListener('input', function () {
             if (this.value.trim() !== '') clearError(this, descricaoError);
-            if (this.value.length > 1000 ) showError(this, descricaoError, 'A descrição deve ter no máximo 1000 caracteres.');
+            if (this.value.length > 1000) showError(this, descricaoError, 'A descrição deve ter no máximo 1000 caracteres.');
         });
 
         dataInput.addEventListener('change', function () {
@@ -180,9 +183,9 @@
 
         /* ── Validação completa no submit ── */
         form.addEventListener('submit', function (e) {
-            const tituloOk    = validateTitulo();
+            const tituloOk = validateTitulo();
             const descricaoOk = validateDescricao();
-            const dataOk      = validateData();
+            const dataOk = validateData();
             if (!tituloOk || !descricaoOk || !dataOk) e.preventDefault();
         });
     })();

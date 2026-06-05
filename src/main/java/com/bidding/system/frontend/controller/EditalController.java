@@ -25,8 +25,6 @@ public class EditalController {
     @Autowired
     private ApiService restService;
 
-    // ── Lista de editais ────────────────────────────────────────────────────────
-
     @GetMapping("/editais")
     public String editais(
             Model model,
@@ -46,8 +44,6 @@ public class EditalController {
 
         return "editais";
     }
-
-    // ── Detalhes do edital ─────────────────────────────────────────────────────
 
     @GetMapping("/editais/{id}")
     public String editalDetalhes(
@@ -83,8 +79,6 @@ public class EditalController {
             return "redirect:/editais";
         }
     }
-
-    // ── Envio de lance ─────────────────────────────────────────────────────────
 
     @PostMapping("/editais/{id}/lances")
     public String enviarLance(
@@ -134,8 +128,6 @@ public class EditalController {
         return "redirect:/editais/" + id;
     }
 
-    // ── Visualização de lances ─────────────────────────────────────────────────
-
     @GetMapping("/editais/{id}/lances")
     public String verLances(
             @PathVariable Long id,
@@ -167,8 +159,6 @@ public class EditalController {
             return "redirect:/editais";
         }
     }
-
-    // ── Visualização dos Próprios Lances (Para FORNECEDOR) ─────────────────────
 
     @GetMapping("/meus-lances")
     public String meusLances(
@@ -202,8 +192,6 @@ public class EditalController {
             return "redirect:/editais";
         }
     }
-
-    // ── Criar novo edital ──────────────────────────────────────────────────────
 
     @GetMapping("/novo-edital")
     public String novoEdital(Model model, HttpSession session) {
@@ -239,8 +227,6 @@ public class EditalController {
         }
     }
 
-    // ── Utilidade ──────────────────────────────────────────────────────────────
-
     private String extrairMensagemBackend(HttpStatusCodeException ex) {
         try {
             return new ObjectMapper()
@@ -250,4 +236,4 @@ public class EditalController {
             return null;
         }
     }
-}
+}

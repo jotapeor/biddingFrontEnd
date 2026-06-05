@@ -22,17 +22,25 @@ main {
 .card-hover {
     transition: box-shadow 0.2s ease-in-out, transform 0.2s ease-in-out;
 }
+
 .card-hover:hover {
-    box-shadow: 0 .5rem 1rem rgba(0,0,0,.15)!important;
+    box-shadow: 0 .5rem 1rem rgba(0, 0, 0, .15) !important;
     transform: translateY(-2px);
 }
 
 /* Badge pulsar para editais urgentes */
 @keyframes pulse {
-    0% { transform: scale(1); }
-    50% { transform: scale(1.05); }
-    100% { transform: scale(1); }
+    0% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.05);
+    }
+    100% {
+        transform: scale(1);
+    }
 }
+
 .badge-urgent {
     animation: pulse 1.5s infinite;
 }

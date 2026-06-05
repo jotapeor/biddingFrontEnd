@@ -36,7 +36,8 @@
             <h5 class="mb-0 text-dark">Editais Disponíveis</h5>
             <form th:action="@{/editais}" method="get" class="d-flex align-items-center m-0">
                 <div class="form-check form-switch me-3">
-                    <input class="form-check-input" type="checkbox" role="switch" id="urgenteSwitch" name="urgente" th:checked="${param.urgente != null}">
+                    <input class="form-check-input" type="checkbox" role="switch" id="urgenteSwitch" name="urgente"
+                           th:checked="${param.urgente != null}">
                     <label class="form-check-label text-danger fw-bold" for="urgenteSwitch">Apenas Urgentes</label>
                 </div>
                 <button type="submit" class="btn btn-sm btn-outline-secondary">Filtrar</button>
@@ -59,17 +60,20 @@
                         <th scope="row" class="px-4 text-muted" th:text="${edital.id}">1</th>
                         <td class="fw-semibold text-dark" th:text="${edital.titulo}">Título</td>
                         <td>
-                            <span class="data-fechamento" th:attr="data-time=${edital.dataFechamento}" th:text="${edital.dataFechamentoFormatada}"></span>
+                            <span class="data-fechamento" th:attr="data-time=${edital.dataFechamento}"
+                                  th:text="${edital.dataFechamentoFormatada}"></span>
                         </td>
                         <td>
                             <span class="badge px-2 py-1"
                                   th:classappend="${edital.status == 'ABERTO'} ? 'bg-success' : 'bg-secondary'"
                                   th:text="${edital.status}">
                             </span>
-                            <span class="badge bg-danger ms-1 badge-urgent d-none" th:id="'badge-urgent-' + ${edital.id}">Encerrando em breve!</span>
+                            <span class="badge bg-danger ms-1 badge-urgent d-none"
+                                  th:id="'badge-urgent-' + ${edital.id}">Encerrando em breve!</span>
                         </td>
                         <td class="text-end px-4">
-                            <a th:href="@{/editais/{id}(id=${edital.id})}" class="btn btn-primary btn-sm px-3 shadow-sm">
+                            <a th:href="@{/editais/{id}(id=${edital.id})}"
+                               class="btn btn-primary btn-sm px-3 shadow-sm">
                                 Ver Detalhes
                             </a>
                         </td>
@@ -91,12 +95,12 @@
 <script th:src="@{/webjars/bootstrap/5.3.8/js/bootstrap.bundle.min.js}"></script>
 <script>
     // Script para exibir badge de urgente (fechando em menos de 48h)
-    document.addEventListener("DOMContentLoaded", function() {
+    document.addEventListener("DOMContentLoaded", function () {
         const rows = document.querySelectorAll('.data-fechamento');
         const now = new Date().getTime();
         const limit = 48 * 60 * 60 * 1000; // 48 horas em milissegundos
-        
-        rows.forEach(function(row) {
+
+        rows.forEach(function (row) {
             const timeStr = row.getAttribute('data-time');
             if (timeStr) {
                 const closeDate = new Date(timeStr).getTime();

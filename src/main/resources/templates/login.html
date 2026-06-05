@@ -13,9 +13,11 @@
             font-size: 0.825rem;
             margin-top: 0.25rem;
         }
+
         .field-error.visible {
             display: block;
         }
+
         .form-control.is-invalid {
             border-color: #dc3545;
             box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.15);
@@ -38,7 +40,8 @@
                          th:text="${mensagemSucesso}"></div>
 
                     <!-- Erro do servidor oculto para JS processar -->
-                    <div th:if="${errorMessage}" id="server-error-text" style="display: none;" th:text="${errorMessage}"></div>
+                    <div th:if="${errorMessage}" id="server-error-text" style="display: none;"
+                         th:text="${errorMessage}"></div>
 
                     <form th:action="@{/logar}" th:object="${credenciais}" method="post" id="formLogin" novalidate>
                         <div class="mb-3">
@@ -52,8 +55,11 @@
                         <div class="mb-3">
                             <label for="senha" class="form-label">Senha</label>
                             <div class="input-group">
-                                <input type="password" class="form-control" id="senha" name="senha" autocomplete="current-password"/>
-                                <button class="btn btn-outline-secondary" type="button" id="toggleSenha" tabindex="-1">Mostrar</button>
+                                <input type="password" class="form-control" id="senha" name="senha"
+                                       autocomplete="current-password"/>
+                                <button class="btn btn-outline-secondary" type="button" id="toggleSenha" tabindex="-1">
+                                    Mostrar
+                                </button>
                             </div>
                             <div class="field-error" id="senha-error"></div>
                         </div>
@@ -73,11 +79,11 @@
 <script th:src="@{/webjars/bootstrap/5.3.8/js/bootstrap.bundle.min.js}"></script>
 <script>
     (function () {
-        const emailInput  = document.getElementById('email');
-        const senhaInput  = document.getElementById('senha');
-        const emailError  = document.getElementById('email-error');
-        const senhaError  = document.getElementById('senha-error');
-        const form        = document.getElementById('formLogin');
+        const emailInput = document.getElementById('email');
+        const senhaInput = document.getElementById('senha');
+        const emailError = document.getElementById('email-error');
+        const senhaError = document.getElementById('senha-error');
+        const form = document.getElementById('formLogin');
         const serverErrorText = document.getElementById('server-error-text');
 
         /* ── Helpers ── */
@@ -149,7 +155,7 @@
         /* ── Alternar Visibilidade da Senha ── */
         const btnToggle = document.getElementById('toggleSenha');
         if (btnToggle) {
-            btnToggle.addEventListener('click', function() {
+            btnToggle.addEventListener('click', function () {
                 const type = senhaInput.getAttribute('type') === 'password' ? 'text' : 'password';
                 senhaInput.setAttribute('type', type);
                 this.textContent = type === 'password' ? 'Mostrar' : 'Ocultar';
