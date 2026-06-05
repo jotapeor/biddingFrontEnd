@@ -16,7 +16,8 @@
     <!-- Header -->
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div class="d-flex align-items-center gap-3">
-            <a th:href="@{/editais/{id}(id=${edital.id})}" class="btn btn-outline-secondary btn-sm shadow-sm">&larr; Voltar ao Edital</a>
+            <a th:href="@{/editais/{id}(id=${edital.id})}" class="btn btn-outline-secondary btn-sm shadow-sm">&larr;
+                Voltar ao Edital</a>
             <h1 class="h2 text-primary mb-0">Lances do Edital</h1>
         </div>
     </div>
@@ -44,12 +45,14 @@
 
     <!-- Aviso de privacidade (edital aberto, fornecedor) -->
     <div th:if="${edital.status == 'ABERTO' and role == 'FORNECEDOR'}" class="alert alert-info shadow-sm mb-4">
-        <strong>Modo de Privacidade:</strong> Como o edital ainda está aberto, você está vendo <strong>apenas o seu lance</strong>. Os demais serão revelados quando o edital for encerrado.
+        <strong>Modo de Privacidade:</strong> Como o edital ainda está aberto, você está vendo <strong>apenas o seu
+        lance</strong>. Os demais serão revelados quando o edital for encerrado.
     </div>
 
     <!-- Aviso de edital encerrado -->
     <div th:if="${edital.status != 'ABERTO'}" class="alert alert-secondary shadow-sm mb-4">
-        <strong>Edital Encerrado:</strong> A fase de lances acabou. Confira abaixo o histórico completo de todos os lances registrados.
+        <strong>Edital Encerrado:</strong> A fase de lances acabou. Confira abaixo o histórico completo de todos os
+        lances registrados.
     </div>
 
     <!-- Tabela de Lances -->

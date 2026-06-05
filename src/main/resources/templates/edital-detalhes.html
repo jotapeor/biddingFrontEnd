@@ -13,9 +13,11 @@
             font-size: 0.825rem;
             margin-top: 0.25rem;
         }
+
         .field-error.visible {
             display: block;
         }
+
         .form-control.is-invalid {
             border-color: #dc3545;
             box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.15);
@@ -76,7 +78,8 @@
 
                     <div>
                         <span class="text-muted text-uppercase small fw-bold">Descrição</span>
-                        <p class="mt-2 text-dark" style="white-space: pre-wrap;" th:text="${edital.descricao}">Descrição do edital.</p>
+                        <p class="mt-2 text-dark" style="white-space: pre-wrap;" th:text="${edital.descricao}">Descrição
+                            do edital.</p>
                     </div>
                 </div>
             </div>
@@ -86,7 +89,8 @@
         <div class="col-lg-5">
 
             <!-- Formulário de lance para Fornecedor logado em edital Aberto -->
-            <div th:if="${role == 'FORNECEDOR' and edital.status == 'ABERTO'}" class="card shadow-sm border-success mb-4">
+            <div th:if="${role == 'FORNECEDOR' and edital.status == 'ABERTO'}"
+                 class="card shadow-sm border-success mb-4">
                 <div class="card-header bg-success text-white">
                     <h5 class="mb-0">Enviar Lance</h5>
                 </div>
@@ -113,7 +117,8 @@
             </div>
 
             <!-- Aviso de edital fechado para fornecedor -->
-            <div th:if="${role == 'FORNECEDOR' and edital.status != 'ABERTO'}" class="card shadow-sm border-secondary mb-4 bg-light">
+            <div th:if="${role == 'FORNECEDOR' and edital.status != 'ABERTO'}"
+                 class="card shadow-sm border-secondary mb-4 bg-light">
                 <div class="card-body text-center text-secondary py-4">
                     <h5 class="mb-3">Edital Fechado</h5>
                     <p class="mb-0">Este edital não está mais aceitando novos lances.</p>
@@ -124,7 +129,8 @@
             <div th:if="${role != 'FORNECEDOR'}" class="card shadow-sm border-info mb-4 bg-light">
                 <div class="card-body text-info text-center py-4">
                     <h5 class="mb-3">Modo Visualização</h5>
-                    <p class="mb-0 text-dark">Apenas usuários cadastrados como <strong>FORNECEDOR</strong> podem enviar lances em editais abertos.</p>
+                    <p class="mb-0 text-dark">Apenas usuários cadastrados como <strong>FORNECEDOR</strong> podem enviar
+                        lances em editais abertos.</p>
                 </div>
             </div>
 
@@ -150,8 +156,8 @@
 <script th:src="@{/webjars/bootstrap/5.3.8/js/bootstrap.bundle.min.js}"></script>
 <script>
     (function () {
-        const form       = document.getElementById('formLance');
-        const btn        = document.getElementById('btnEnviarLance');
+        const form = document.getElementById('formLance');
+        const btn = document.getElementById('btnEnviarLance');
         const valorInput = document.getElementById('valor');
         const valorError = document.getElementById('valor-error');
 

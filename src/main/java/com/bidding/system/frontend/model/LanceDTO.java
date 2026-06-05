@@ -1,16 +1,17 @@
 package com.bidding.system.frontend.model;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+
 import java.time.LocalDateTime;
 
 public class LanceDTO {
 
     private Long id;
     private double valor;
-    
+
     @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
     private LocalDateTime data_lance;
-    
+
     private Long id_edital;
     private Long id_usuario;
 

@@ -26,7 +26,8 @@
                     <h2 class="text-center mb-4 text-primary">Cadastrar nova conta</h2>
 
                     <!-- Erro do servidor oculto para JS processar -->
-                    <div th:if="${errorMessage}" id="server-error-text" style="display: none;" th:text="${errorMessage}"></div>
+                    <div th:if="${errorMessage}" id="server-error-text" style="display: none;"
+                         th:text="${errorMessage}"></div>
 
                     <form th:action="@{/registrar}" th:object="${user}" method="post" id="formCadastro" novalidate>
 
@@ -49,8 +50,11 @@
                         <div class="mb-3">
                             <label for="senha" class="form-label">Senha</label>
                             <div class="input-group has-validation">
-                                <input type="password" class="form-control" id="senha" name="senha" autocomplete="new-password"/>
-                                <button class="btn btn-outline-secondary" type="button" id="toggleSenha" tabindex="-1">Mostrar</button>
+                                <input type="password" class="form-control" id="senha" name="senha"
+                                       autocomplete="new-password"/>
+                                <button class="btn btn-outline-secondary" type="button" id="toggleSenha" tabindex="-1">
+                                    Mostrar
+                                </button>
                                 <div class="invalid-feedback" id="senha-error"></div>
                                 <div class="valid-feedback" id="senha-success"></div>
                             </div>
@@ -59,8 +63,11 @@
                         <div class="mb-3">
                             <label for="confirmarSenha" class="form-label">Confirmar Senha</label>
                             <div class="input-group has-validation">
-                                <input type="password" class="form-control" id="confirmarSenha" name="confirmarSenha" autocomplete="new-password"/>
-                                <button class="btn btn-outline-secondary" type="button" id="toggleConfirmarSenha" tabindex="-1">Mostrar</button>
+                                <input type="password" class="form-control" id="confirmarSenha" name="confirmarSenha"
+                                       autocomplete="new-password"/>
+                                <button class="btn btn-outline-secondary" type="button" id="toggleConfirmarSenha"
+                                        tabindex="-1">Mostrar
+                                </button>
                                 <div class="invalid-feedback" id="confirmarSenha-error"></div>
                                 <div class="valid-feedback" id="confirmarSenha-success"></div>
                             </div>
@@ -81,14 +88,14 @@
 <script th:src="@{/webjars/bootstrap/5.3.8/js/bootstrap.bundle.min.js}"></script>
 <script>
     (function () {
-        const nomeInput      = document.getElementById('nome');
-        const emailInput     = document.getElementById('email');
-        const senhaInput     = document.getElementById('senha');
+        const nomeInput = document.getElementById('nome');
+        const emailInput = document.getElementById('email');
+        const senhaInput = document.getElementById('senha');
         const confirmarInput = document.getElementById('confirmarSenha');
 
-        const nomeError      = document.getElementById('nome-error');
-        const emailError     = document.getElementById('email-error');
-        const senhaError     = document.getElementById('senha-error');
+        const nomeError = document.getElementById('nome-error');
+        const emailError = document.getElementById('email-error');
+        const senhaError = document.getElementById('senha-error');
         const confirmarError = document.getElementById('confirmarSenha-error');
 
         const form = document.getElementById('formCadastro');
@@ -99,20 +106,20 @@
             errorEl.textContent = message;
             input.classList.remove('is-valid');
             input.classList.add('is-invalid');
-            if(successEl) successEl.textContent = '';
+            if (successEl) successEl.textContent = '';
         }
 
         function showSuccess(input, errorEl, successEl, message) {
             successEl.textContent = message;
             input.classList.remove('is-invalid');
             input.classList.add('is-valid');
-            if(errorEl) errorEl.textContent = '';
+            if (errorEl) errorEl.textContent = '';
         }
 
         function clearFeedback(input, errorEl, successEl) {
             input.classList.remove('is-invalid', 'is-valid');
-            if(errorEl) errorEl.textContent = '';
-            if(successEl) successEl.textContent = '';
+            if (errorEl) errorEl.textContent = '';
+            if (successEl) successEl.textContent = '';
         }
 
         function isValidEmail(value) {
@@ -202,7 +209,7 @@
 
         let typingTimerNome;
         const knownTakenNames = new Set();
-        
+
         nomeInput.addEventListener('input', function () {
             clearTimeout(typingTimerNome);
             const val = this.value.trim();
@@ -280,14 +287,14 @@
 
         /* ── Validação completa no submit ── */
         form.addEventListener('submit', function (e) {
-            const nomeOk      = validateNome();
-            const emailOk     = validateEmail();
-            const senhaOk     = validateSenha();
+            const nomeOk = validateNome();
+            const emailOk = validateEmail();
+            const senhaOk = validateSenha();
             const confirmarOk = validateConfirmar();
-            
+
             // Se já foi marcado como inválido pela checagem em tempo real, impede envio
-            if (!nomeOk || !emailOk || !senhaOk || !confirmarOk || 
-                emailInput.classList.contains('is-invalid') || 
+            if (!nomeOk || !emailOk || !senhaOk || !confirmarOk ||
+                emailInput.classList.contains('is-invalid') ||
                 nomeInput.classList.contains('is-invalid')) {
                 e.preventDefault();
             }
@@ -297,14 +304,15 @@
         function setupToggle(btnId, inputId) {
             const btn = document.getElementById(btnId);
             const inp = document.getElementById(inputId);
-            if(btn && inp) {
-                btn.addEventListener('click', function() {
+            if (btn && inp) {
+                btn.addEventListener('click', function () {
                     const type = inp.getAttribute('type') === 'password' ? 'text' : 'password';
                     inp.setAttribute('type', type);
                     this.textContent = type === 'password' ? 'Mostrar' : 'Ocultar';
                 });
             }
         }
+
         setupToggle('toggleSenha', 'senha');
         setupToggle('toggleConfirmarSenha', 'confirmarSenha');
 
