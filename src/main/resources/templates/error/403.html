@@ -1,23 +1,36 @@
 <!DOCTYPE html>
+<!-- 403.html — Página de erro HTTP 403 (Acesso Proibido). -->
+<!-- Exibida quando um usuário está autenticado mas não tem a role/permissão necessária para acessar o recurso solicitado. -->
+<!-- O Spring Security detecta a falta de autorização e redireciona para esta página conforme configurado em SecurityConfig. -->
+<!-- O botão redireciona de volta para /editais (lista pública de editais), acessível a todos os perfis. -->
+<!-- A navbar e o footer são incluídos via fragmentos do layout.html. -->
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
     <title>Acesso Proibido</title>
+    <!-- Importa Bootstrap CSS e style.css via fragmento reutilizável definido em layout.html. -->
     <th:block th:replace="~{layout :: head-content}"></th:block>
 </head>
+<!-- d-flex flex-column min-vh-100: mantém o footer no rodapé mesmo nesta página de erro, que possui pouco conteúdo. -->
 <body class="d-flex flex-column min-vh-100 bg-light">
 
+<!-- Inclui a navbar global definida em layout.html -->
 <div th:replace="~{layout :: navbar}"></div>
 
+<!-- Conteúdo central da página de erro -->
 <div class="container text-center mt-5">
+    <!-- Código de status HTTP em destaque com cor amarela (text-warning) -->
     <h1 class="display-1 text-warning fw-bold">403</h1>
     <h3 class="mb-4">Acesso Proibido</h3>
     <p class="lead text-muted mb-5">Você não tem as permissões necessárias para acessar este recurso.</p>
+    <!-- Botão de ação: redireciona para a listagem de editais, acessível a todos os perfis -->
     <a th:href="@{/editais}" class="btn btn-primary btn-lg px-5 shadow-sm">Voltar ao Início</a>
 </div>
 
+<!-- Inclui o rodapé definido em layout.html -->
 <div th:replace="~{layout :: footer}"></div>
 
+<!-- Bootstrap JS: necessário para funcionalidades como collapse da navbar em mobile -->
 <script th:src="@{/webjars/bootstrap/5.3.8/js/bootstrap.bundle.min.js}"></script>
 </body>
 </html>

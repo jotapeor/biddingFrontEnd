@@ -1,28 +1,41 @@
 <!DOCTYPE html>
+<!-- Página inicial pública, exibida quando o usuário não está logado. -->
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
+    <!-- Garante que o viewport se adapte a dispositivos móveis (layout responsivo) -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>EditaisGOV - Início</title>
     <link rel="icon" type="image/png" th:href="@{/edital-icon.png}">
+    <!-- th:replace="~{layout :: head-content}": substitui este bloco pelo fragmento "head-content" -->
+    <!-- Importa Bootstrap CSS e style.css. -->
     <th:block th:replace="~{layout :: head-content}"></th:block>
 </head>
+<!-- d-flex flex-column min-vh-100: empurra o footer para o fim da página. -->
 <body class="d-flex flex-column min-vh-100 bg-light">
 
+<!-- Inclui a navbar do layout.html; o conteúdo do div é descartado e substituído pelo fragmento -->
 <div th:replace="~{layout :: navbar}"></div>
 
+<!-- flex-grow-1: faz este container crescer para preencher o espaço disponível. -->
 <div class="container mt-5 flex-grow-1 text-center">
     <div class="py-5">
         <h1 class="display-4 text-primary fw-bold mb-3">Bem-vindo ao EditaisGOV</h1>
         <p class="lead text-muted mb-5">
             O portal definitivo para criar editais e participar de pregões eletrônicos de forma rápida e segura.
         </p>
+
+        <!-- Botões de CTA: direcionam para login ou registro -->
         <div class="d-flex justify-content-center gap-3">
+            <!-- th:href="@{/login}" gera a URL correta considerando o context path do servidor -->
             <a th:href="@{/login}" class="btn btn-primary btn-lg shadow-sm px-5">Fazer Login</a>
             <a th:href="@{/registrar}" class="btn btn-outline-secondary btn-lg shadow-sm px-5">Criar Conta</a>
         </div>
     </div>
+
+    <!-- Seção de cards informativos sobre os perfis de uso do sistema -->
     <div class="row mt-5 pt-4 text-start">
+        <!-- Card para o perfil ORGAO (Compradores) -->
         <div class="col-md-4 mb-4">
             <div class="card border-0 shadow-sm h-100">
                 <div class="card-body">
@@ -32,6 +45,7 @@
                 </div>
             </div>
         </div>
+        <!-- Card para o perfil FORNECEDOR -->
         <div class="col-md-4 mb-4">
             <div class="card border-0 shadow-sm h-100">
                 <div class="card-body">
@@ -41,6 +55,7 @@
                 </div>
             </div>
         </div>
+        <!-- Card informativo sobre transparência do sistema -->
         <div class="col-md-4 mb-4">
             <div class="card border-0 shadow-sm h-100">
                 <div class="card-body">
@@ -53,8 +68,10 @@
     </div>
 </div>
 
+<!-- Inclui o rodapé definido em layout.html -->
 <div th:replace="~{layout :: footer}"></div>
 
+<!-- Bootstrap JS: necessário para funcionalidades como collapse da navbar em mobile -->
 <script th:src="@{/webjars/bootstrap/5.3.8/js/bootstrap.bundle.min.js}"></script>
 </body>
 </html>

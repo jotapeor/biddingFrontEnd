@@ -1,10 +1,19 @@
 /* src/main/resources/static/css/style.css */
+/* Folha de estilos customizada do projeto EditaisGOV. */
+/* Complementa o Bootstrap 5 com ajustes de layout, animações e utilitários específicos desta aplicação. */
+/* É carregada em todas as páginas via o fragmento "head-content" definido em layout.html. */
+
+/* Configura o body como um container flexbox em coluna ocupando no mínimo 100% da viewport. */
+/* Essencial para que o footer fique sempre no rodapé, mesmo em páginas com pouco conteúdo. */
+/* Funciona em conjunto com mt-auto do footer e flex-grow-1 do conteúdo principal. */
 body {
     display: flex;
     flex-direction: column;
     min-height: 100vh;
 }
 
+/* flex: 1 faz o <main> crescer e ocupar todo o espaço disponível entre a navbar e o footer. */
+/* Evita que o footer "suba" em páginas com pouco conteúdo. */
 main {
     flex: 1;
 }
@@ -14,6 +23,7 @@ main {
     transition: all 0.2s ease-in-out;
 }
 
+/* Leve elevação vertical ao passar o mouse sobre botões, reforçando o feedback visual de interatividade. */
 .btn:hover {
     transform: translateY(-1px);
 }
@@ -23,6 +33,8 @@ main {
     transition: box-shadow 0.2s ease-in-out, transform 0.2s ease-in-out;
 }
 
+/* Ao fazer hover em um card-hover, a sombra aumenta e o card sobe levemente. */
+/* Cria a sensação de que o elemento está "flutuando" sobre a página. */
 .card-hover:hover {
     box-shadow: 0 .5rem 1rem rgba(0, 0, 0, .15) !important;
     transform: translateY(-2px);
@@ -41,6 +53,9 @@ main {
     }
 }
 
+/* Aplica a animação "pulse" continuamente em badges marcados como urgentes. */
+/* Chama atenção do usuário para editais com prazo próximo do encerramento. */
+/* Usado em conjunto com a classe badge do Bootstrap. */
 .badge-urgent {
     animation: pulse 1.5s infinite;
 }

@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+<!-- Formulário de cadastro de novo usuário (FORNECEDOR). -->
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
     <title>EditaisGOV</title>
@@ -7,7 +8,8 @@
     <link rel="icon" type="image/png" th:href="@{/edital-icon.png}">
     <th:block th:replace="~{layout :: head-content}"></th:block>
     <style>
-        /* Ajuste do toggle de senha para nao conflitar com os ícones de validação do Bootstrap */
+        /* Correção de z-index para inputs dentro de .input-group com validação Bootstrap. */
+        /* Sem isso, o ícone de validação fica sobreposto pelo botão do input-group adjacente. */
         .input-group.has-validation .form-control.is-invalid,
         .input-group.has-validation .form-control.is-valid {
             z-index: 2;
@@ -25,16 +27,24 @@
                 <div class="card-body p-4">
                     <h2 class="text-center mb-4 text-primary">Cadastrar nova conta</h2>
 
-                    <!-- Erro do servidor oculto para JS processar -->
+                    <!-- div oculto que carrega o erro vindo do servidor (via flash attribute do controller). -->
+                    <!-- O JS lê o textContent para determinar em qual campo exibir o erro. -->
                     <div th:if="${errorMessage}" id="server-error-text" style="display: none;"
                          th:text="${errorMessage}"></div>
 
+                    <!-- th:action="@{/registrar}": destino do POST. -->
+                    <!-- th:object="${user}": vincula ao UserDTO do model para uso de th:value com safe-navigation. -->
+                    <!-- novalidate: desabilita validação nativa do browser. -->
                     <form th:action="@{/registrar}" th:object="${user}" method="post" id="formCadastro" novalidate>
 
                         <div class="mb-3">
                             <label for="nome" class="form-label">Nome</label>
+                            <!-- th:value="${user?.nome}": o operador ?. evita NullPointerException. -->
+                            <!-- Repopula o campo com o valor já digitado após erro de validação. -->
+                            <!-- autocomplete="name": dica para o gerenciador de senhas. -->
                             <input type="text" class="form-control" id="nome" name="nome"
                                    th:value="${user?.nome}" autocomplete="name"/>
+                            <!-- Div de erro/sucesso Bootstrap: preenchidos via JS conforme validação -->
                             <div class="invalid-feedback" id="nome-error"></div>
                             <div class="valid-feedback" id="nome-success"></div>
                         </div>
@@ -49,9 +59,12 @@
 
                         <div class="mb-3">
                             <label for="senha" class="form-label">Senha</label>
+                            <!-- has-validation: necessário para feedback correto dentro de input-group. -->
                             <div class="input-group has-validation">
+                                <!-- autocomplete="new-password": previne preenchimento com a senha atual. -->
                                 <input type="password" class="form-control" id="senha" name="senha"
                                        autocomplete="new-password"/>
+                                <!-- tabindex="-1": remove o botão da ordem de navegação por Tab -->
                                 <button class="btn btn-outline-secondary" type="button" id="toggleSenha" tabindex="-1">
                                     Mostrar
                                 </button>
@@ -87,21 +100,29 @@
 </div>
 <script th:src="@{/webjars/bootstrap/5.3.8/js/bootstrap.bundle.min.js}"></script>
 <script>
+    // IIFE: encapsula todo o código em escopo privado
     (function () {
+        // Referências aos inputs do formulário
         const nomeInput = document.getElementById('nome');
         const emailInput = document.getElementById('email');
         const senhaInput = document.getElementById('senha');
         const confirmarInput = document.getElementById('confirmarSenha');
 
+        // Referências aos divs de feedback de erro (Bootstrap .invalid-feedback)
         const nomeError = document.getElementById('nome-error');
         const emailError = document.getElementById('email-error');
         const senhaError = document.getElementById('senha-error');
         const confirmarError = document.getElementById('confirmarSenha-error');
 
         const form = document.getElementById('formCadastro');
+        // Elemento oculto injetado pelo Thymeleaf com erro do servidor
         const serverErrorText = document.getElementById('server-error-text');
 
-        /* ── Helpers ── */
+        // ── Helpers ──
+
+        // showError: aplica estado de erro em um campo com feedback duplo (erro e sucesso).
+        // - classList.add('is-invalid'): ativa .invalid-feedback via Bootstrap CSS.
+        // - Remove is-valid para garantir que os dois estados não coexistam.
         function showError(input, errorEl, successEl, message) {
             errorEl.textContent = message;
             input.classList.remove('is-valid');
@@ -109,6 +130,8 @@
             if (successEl) successEl.textContent = '';
         }
 
+        // showSuccess: aplica estado de sucesso visual.
+        // - classList.add('is-valid'): ativa .valid-feedback via Bootstrap CSS.
         function showSuccess(input, errorEl, successEl, message) {
             successEl.textContent = message;
             input.classList.remove('is-invalid');
@@ -116,17 +139,22 @@
             if (errorEl) errorEl.textContent = '';
         }
 
+        // clearFeedback: remove ambos os estados, voltando ao visual neutro
         function clearFeedback(input, errorEl, successEl) {
             input.classList.remove('is-invalid', 'is-valid');
             if (errorEl) errorEl.textContent = '';
             if (successEl) successEl.textContent = '';
         }
 
+        // isValidEmail: regex para validar formato básico de e-mail.
+        // Não valida a existência do e-mail — isso é feito pelo fetch ao backend.
         function isValidEmail(value) {
             return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim());
         }
 
-        /* ── Funções de validação individuais ── */
+        // ── Funções de validação individuais ──
+
+        // validateNome: valida presença e mínimo de 3 caracteres
         function validateNome() {
             const val = nomeInput.value.trim();
             const errEl = document.getElementById('nome-error');
@@ -138,11 +166,12 @@
                 showError(nomeInput, errEl, sucEl, 'Insira um nome válido (mínimo de 3 letras).');
                 return false;
             }
-            // Temporariamente definimos como válido, será sobreposto pelo fetch se existir
+            // Marca como válido provisoriamente; pode ser sobrescrito pelo fetch de verificação
             showSuccess(nomeInput, errEl, sucEl, 'Nome válido e pronto para uso.');
             return true;
         }
 
+        // validateEmail: valida presença e formato; verificação de unicidade é feita pelo fetch
         function validateEmail() {
             const val = emailInput.value.trim();
             const errEl = document.getElementById('email-error');
@@ -154,11 +183,13 @@
                 showError(emailInput, errEl, sucEl, 'E-mail com formato inválido.');
                 return false;
             }
-            // Temporariamente definimos como válido, será sobreposto pelo fetch se existir
             showSuccess(emailInput, errEl, sucEl, 'E-mail válido e pronto para uso.');
             return true;
         }
 
+        // validateSenha: valida regras de complexidade da senha.
+        // Ordem das verificações: vazio → comprimento → maiúscula → número → especial.
+        // Cada regra usa regex para verificar a presença do requisito.
         function validateSenha() {
             const val = senhaInput.value;
             const errEl = document.getElementById('senha-error');
@@ -170,12 +201,15 @@
                 showError(senhaInput, errEl, sucEl, 'A senha deve ter pelo menos 8 caracteres.');
                 return false;
             } else if (!/[A-Z]/.test(val)) {
+                // /[A-Z]/.test(val): verifica se há pelo menos uma letra maiúscula
                 showError(senhaInput, errEl, sucEl, 'A senha deve conter pelo menos uma letra maiúscula.');
                 return false;
             } else if (!/[0-9]/.test(val)) {
+                // /[0-9]/.test(val): verifica se há pelo menos um dígito numérico
                 showError(senhaInput, errEl, sucEl, 'A senha deve conter pelo menos um número.');
                 return false;
             } else if (!/[!@#$%^&*(),.?":{}|<>\-_+=\[\]]/.test(val)) {
+                // Regex de caracteres especiais aceitos; o \- e \[ evitam interpretação como range
                 showError(senhaInput, errEl, sucEl, 'A senha deve conter pelo menos um caractere especial.');
                 return false;
             }
@@ -183,6 +217,7 @@
             return true;
         }
 
+        // validateConfirmar: verifica se a confirmação é idêntica à senha original
         function validateConfirmar() {
             const val = confirmarInput.value;
             const errEl = document.getElementById('confirmarSenha-error');
@@ -191,6 +226,7 @@
                 showError(confirmarInput, errEl, sucEl, 'Confirme sua senha.');
                 return false;
             } else if (val !== senhaInput.value) {
+                // Comparação direta entre as strings dos dois campos
                 showError(confirmarInput, errEl, sucEl, 'As senhas não coincidem.');
                 return false;
             }
@@ -198,42 +234,51 @@
             return true;
         }
 
-        /* ── Validação ao sair do campo (blur) ── */
+        // ── Validação ao sair do campo (blur) ──
         nomeInput.addEventListener('blur', validateNome);
         emailInput.addEventListener('blur', validateEmail);
         senhaInput.addEventListener('blur', validateSenha);
         confirmarInput.addEventListener('blur', validateConfirmar);
 
-        /* ── Eventos de digitação (input) ── */
-        const doneTypingInterval = 500; // tempo de espera apos parar de digitar
+        // ── Eventos de digitação (input) com debounce para chamadas ao servidor ──
+
+        const doneTypingInterval = 500; // Aguarda 500ms sem digitar antes de chamar a API
 
         let typingTimerNome;
+        // knownTakenNames: cache local de nomes já confirmados como em uso pelo servidor.
+        // Evita chamadas desnecessárias ao backend para o mesmo nome.
         const knownTakenNames = new Set();
 
         nomeInput.addEventListener('input', function () {
+            // Cancela o timer anterior se o usuário continuar digitando
             clearTimeout(typingTimerNome);
             const val = this.value.trim();
             const errEl = document.getElementById('nome-error');
             const sucEl = document.getElementById('nome-success');
 
             if (val === '' || val.length < 3) {
-                validateNome(); // mostrar erro de tamanho
+                validateNome(); // Exibe erro de tamanho imediatamente
             } else if (knownTakenNames.has(val.toLowerCase())) {
+                // Se o nome já está no cache de nomes tomados, exibe erro sem chamar o servidor
                 showError(nomeInput, errEl, sucEl, 'Este nome já está em uso.');
             } else {
                 clearFeedback(nomeInput, errEl, sucEl);
                 typingTimerNome = setTimeout(() => {
+                    // fetch API: realiza uma requisição GET assíncrona ao endpoint interno.
+                    // encodeURIComponent: codifica caracteres especiais no nome para a query string.
+                    // .then(res => res.json()): parse da resposta JSON (boolean).
                     fetch('/api/verificar-nome?nome=' + encodeURIComponent(val))
                         .then(res => res.json())
                         .then(exists => {
                             if (exists) {
-                                knownTakenNames.add(val.toLowerCase());
+                                knownTakenNames.add(val.toLowerCase()); // Adiciona ao cache
                                 showError(nomeInput, errEl, sucEl, 'Este nome já está em uso.');
                             } else {
                                 showSuccess(nomeInput, errEl, sucEl, 'Nome válido e disponível!');
                             }
                         })
                         .catch(err => {
+                            // Em caso de falha na requisição, assume válido para não bloquear o usuário
                             showSuccess(nomeInput, errEl, sucEl, 'Nome válido.');
                         });
                 }, doneTypingInterval);
@@ -241,6 +286,7 @@
         });
 
         let typingTimer;
+        // Cache de e-mails já confirmados como em uso pelo servidor
         const knownTakenEmails = new Set();
 
         emailInput.addEventListener('input', function () {
@@ -250,12 +296,11 @@
             const sucEl = document.getElementById('email-success');
 
             if (val === '' || !isValidEmail(val)) {
-                validateEmail(); // mostrar erro de formato em tempo real
+                validateEmail(); // Exibe erro de formato em tempo real
             } else if (knownTakenEmails.has(val.toLowerCase())) {
-                // E-mail que já tentamos e o servidor rejeitou
+                // E-mail já tentado e rejeitado pelo servidor — exibe erro sem nova requisição
                 showError(emailInput, errEl, sucEl, 'Este e-mail já está em uso.');
             } else {
-                // Remove erro e checa no servidor em tempo real
                 clearFeedback(emailInput, errEl, sucEl);
                 typingTimer = setTimeout(() => {
                     fetch('/api/verificar-email?email=' + encodeURIComponent(val))
@@ -277,22 +322,25 @@
 
         senhaInput.addEventListener('input', function () {
             validateSenha();
-            // Reavalia confirmação ao alterar senha
+            // Reavalia o campo de confirmação se ele já foi preenchido,
+            // pois alterar a senha pode tornar a confirmação inválida
             if (confirmarInput.value.length > 0) {
                 validateConfirmar();
             }
         });
 
+        // Reavalia confirmação em tempo real ao digitar neste campo
         confirmarInput.addEventListener('input', validateConfirmar);
 
-        /* ── Validação completa no submit ── */
+        // ── Validação completa no submit ──
         form.addEventListener('submit', function (e) {
             const nomeOk = validateNome();
             const emailOk = validateEmail();
             const senhaOk = validateSenha();
             const confirmarOk = validateConfirmar();
 
-            // Se já foi marcado como inválido pela checagem em tempo real, impede envio
+            // Verifica também se algum campo foi marcado como is-invalid pelo fetch assíncrono.
+            // Isso previne o envio mesmo se as funções acima retornaram true provisoriamente.
             if (!nomeOk || !emailOk || !senhaOk || !confirmarOk ||
                 emailInput.classList.contains('is-invalid') ||
                 nomeInput.classList.contains('is-invalid')) {
@@ -300,12 +348,15 @@
             }
         });
 
-        /* ── Alternar Visibilidade da Senha ── */
+        // ── Toggle de visibilidade das senhas ──
+
+        // setupToggle: função reutilizável para configurar o botão "Mostrar/Ocultar" de um campo de senha.
         function setupToggle(btnId, inputId) {
             const btn = document.getElementById(btnId);
             const inp = document.getElementById(inputId);
             if (btn && inp) {
                 btn.addEventListener('click', function () {
+                    // Alterna entre 'password' (oculto) e 'text' (visível)
                     const type = inp.getAttribute('type') === 'password' ? 'text' : 'password';
                     inp.setAttribute('type', type);
                     this.textContent = type === 'password' ? 'Mostrar' : 'Ocultar';
@@ -313,10 +364,11 @@
             }
         }
 
+        // Configura os toggles para os dois campos de senha
         setupToggle('toggleSenha', 'senha');
         setupToggle('toggleConfirmarSenha', 'confirmarSenha');
 
-        /* ── Distribuir erro do servidor ── */
+        // ── Distribuição do erro do servidor para o campo correto ──
         if (serverErrorText) {
             const msg = serverErrorText.textContent.toLowerCase();
             const emailErrEl = document.getElementById('email-error');
@@ -324,12 +376,15 @@
             const senhaErrEl = document.getElementById('senha-error');
             const senhaSucEl = document.getElementById('senha-success');
 
+            // Decide em qual campo exibir o erro com base no conteúdo da mensagem
             if (msg.includes('email') || msg.includes('e-mail')) {
+                // Adiciona ao cache para evitar nova tentativa com o mesmo e-mail
                 knownTakenEmails.add(emailInput.value.trim().toLowerCase());
                 showError(emailInput, emailErrEl, emailSucEl, serverErrorText.textContent);
             } else if (msg.includes('senha')) {
                 showError(senhaInput, senhaErrEl, senhaSucEl, serverErrorText.textContent);
             } else {
+                // Fallback: exibe no campo de e-mail por ser o mais provável
                 showError(emailInput, emailErrEl, emailSucEl, serverErrorText.textContent);
             }
         }

@@ -1,4 +1,5 @@
 <!doctype html>
+<!-- Página de login: formulário de autenticação com validação client-side em JavaScript. -->
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
     <title>EditaisGOV</title>
@@ -7,6 +8,7 @@
     <link rel="icon" type="image/png" th:href="@{/edital-icon.png}">
     <th:block th:replace="~{layout :: head-content}"></th:block>
     <style>
+        /* .field-error: classe base para os elementos de feedback de erro; oculto por padrão */
         .field-error {
             display: none;
             color: #dc3545;
@@ -14,10 +16,12 @@
             margin-top: 0.25rem;
         }
 
+        /* .field-error.visible: ativado via JS (classList.add('visible')) para exibir o erro */
         .field-error.visible {
             display: block;
         }
 
+        /* Estilo visual do input quando marcado como inválido pelo JS */
         .form-control.is-invalid {
             border-color: #dc3545;
             box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.15);
@@ -35,28 +39,38 @@
                 <div class="card-body p-4">
                     <h2 class="text-center mb-4 text-primary">EditaisGOV</h2>
 
-                    <!-- Mensagem de sucesso (ex: cadastro realizado) -->
+                    <!-- Exibido quando o redirect do /registrar traz mensagemSucesso via flash attribute. -->
+                    <!-- th:if: renderiza este div somente se o atributo existir no model. -->
                     <div th:if="${mensagemSucesso}" class="alert alert-success" role="alert"
                          th:text="${mensagemSucesso}"></div>
 
-                    <!-- Erro do servidor oculto para JS processar -->
+                    <!-- div oculto (display:none) que carrega a mensagem de erro do servidor. -->
+                    <!-- O JavaScript lê o textContent deste elemento para exibir o erro no campo correto, evitando um alert genérico. -->
                     <div th:if="${errorMessage}" id="server-error-text" style="display: none;"
                          th:text="${errorMessage}"></div>
 
+                    <!-- th:action="@{/logar}": define a URL de destino do POST, resolvida pelo Thymeleaf. -->
+                    <!-- th:object="${credenciais}": vincula o formulário ao objeto UserRequestDTO do model. -->
+                    <!-- novalidate: desabilita a validação nativa do browser para usar a validação JS customizada. -->
                     <form th:action="@{/logar}" th:object="${credenciais}" method="post" id="formLogin" novalidate>
                         <div class="mb-3">
                             <label for="email" class="form-label">E-mail</label>
+                            <!-- th:value="${credenciais?.email}": o operador ?. evita NullPointerException se credenciais for nulo. -->
+                            <!-- autocomplete="email": permite que o browser sugira e-mails salvos. -->
                             <input type="email" class="form-control" id="email" name="email"
                                    th:value="${credenciais?.email}"
                                    autocomplete="email"/>
+                            <!-- div vazio para o JS inserir mensagens de erro dinâmicas no campo -->
                             <div class="field-error" id="email-error"></div>
                         </div>
 
                         <div class="mb-3">
                             <label for="senha" class="form-label">Senha</label>
                             <div class="input-group">
+                                <!-- autocomplete="current-password": informa ao browser que é a senha atual. -->
                                 <input type="password" class="form-control" id="senha" name="senha"
                                        autocomplete="current-password"/>
+                                <!-- tabindex="-1": remove o botão "Mostrar" da ordem de tabulação. -->
                                 <button class="btn btn-outline-secondary" type="button" id="toggleSenha" tabindex="-1">
                                     Mostrar
                                 </button>
@@ -78,31 +92,45 @@
 </div>
 <script th:src="@{/webjars/bootstrap/5.3.8/js/bootstrap.bundle.min.js}"></script>
 <script>
+    // IIFE (Immediately Invoked Function Expression): envolve todo o código em um escopo privado.
     (function () {
         const emailInput = document.getElementById('email');
         const senhaInput = document.getElementById('senha');
         const emailError = document.getElementById('email-error');
         const senhaError = document.getElementById('senha-error');
         const form = document.getElementById('formLogin');
+        // Referência ao div oculto que contém a mensagem de erro vinda do servidor via Thymeleaf
         const serverErrorText = document.getElementById('server-error-text');
 
-        /* ── Helpers ── */
+        // ── Helpers ──
+
+        // showError: aplica o estado de erro visual em um campo.
+        // - errorEl.textContent: define o texto visível da mensagem de erro.
+        // - classList.add('is-invalid'): aplica a borda vermelha via CSS.
+        // - classList.add('visible'): muda display de 'none' para 'block' via CSS.
         function showError(input, errorEl, message) {
             errorEl.textContent = message;
             input.classList.add('is-invalid');
             errorEl.classList.add('visible');
         }
 
+        // clearError: reverte o estado de erro, limpando visuais e texto.
         function clearError(input, errorEl) {
             input.classList.remove('is-invalid');
             errorEl.classList.remove('visible');
             errorEl.textContent = '';
         }
 
+        // isValidEmail: valida o formato do e-mail usando regex.
+        // Regex: ^[^\s@]+@[^\s@]+\.[^\s@]+$
+        // - [^\s@]+: um ou mais caracteres que não são espaço ou @
+        // - @: o caractere literal @
+        // - \.[^\s@]+$: ponto seguido de domínio de topo (ex: .com, .org)
         function isValidEmail(value) {
             return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim());
         }
 
+        // validateEmail: valida o campo de e-mail e exibe o erro adequado
         function validateEmail() {
             const val = emailInput.value.trim();
             if (val === '') {
@@ -117,6 +145,7 @@
             }
         }
 
+        // validateSenha: verifica se a senha não está vazia
         function validateSenha() {
             if (senhaInput.value.length === 0) {
                 showError(senhaInput, senhaError, 'A senha não pode ser vazia.');
@@ -127,16 +156,19 @@
             }
         }
 
-        /* ── Validação ao sair do campo (blur) ── */
+        // Validação ao sair do campo (evento 'blur'):
+        // Dispara quando o usuário clica fora do input, validando o que foi digitado.
         emailInput.addEventListener('blur', validateEmail);
         senhaInput.addEventListener('blur', validateSenha);
 
-        /* ── Remove erro enquanto o usuário corrige ── */
+        // Evento 'input': dispara a cada tecla digitada.
+        // Remove o erro em tempo real quando o usuário corrige o valor inválido.
         emailInput.addEventListener('input', function () {
             const val = this.value.trim();
             if (val === '' || isValidEmail(val)) {
                 clearError(this, emailError);
             } else if (this.classList.contains('is-invalid')) {
+                // Só revalida se o campo já estava marcado como inválido, evitando mostrar erro prematuro
                 showError(this, emailError, 'Insira um e-mail válido (ex: usuario@email.com).');
             }
         });
@@ -145,14 +177,16 @@
             if (this.value.length > 0) clearError(this, senhaError);
         });
 
-        /* ── Validação completa no submit ── */
+        // Validação no submit: impede o envio do form (e.preventDefault()) se algum campo for inválido.
+        // As funções retornam boolean, então o if verifica se ambos passaram.
         form.addEventListener('submit', function (e) {
             const emailOk = validateEmail();
             const senhaOk = validateSenha();
             if (!emailOk || !senhaOk) e.preventDefault();
         });
 
-        /* ── Alternar Visibilidade da Senha ── */
+        // Toggle de visibilidade da senha:
+        // Alterna o atributo type do input entre 'password' (oculto) e 'text' (visível).
         const btnToggle = document.getElementById('toggleSenha');
         if (btnToggle) {
             btnToggle.addEventListener('click', function () {
@@ -162,10 +196,13 @@
             });
         }
 
-        /* ── Ao carregar com erro do servidor ── */
+        // Tratamento de erro do servidor ao carregar a página:
+        // Se serverErrorText existir, significa que o Thymeleaf renderizou uma mensagem de erro.
+        // O JS distribui esse erro para o campo correto.
         if (serverErrorText) {
-            senhaInput.value = ''; // Limpa a senha
+            senhaInput.value = ''; // Limpa a senha por segurança ao recarregar com erro
             const msg = serverErrorText.textContent.toLowerCase();
+            // Tenta inferir qual campo causou o erro baseado no conteúdo da mensagem
             if (msg.includes('senha') || msg.includes('credenciais') || msg.includes('password')) {
                 showError(senhaInput, senhaError, serverErrorText.textContent);
             } else {

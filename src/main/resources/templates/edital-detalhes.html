@@ -1,23 +1,25 @@
 <!DOCTYPE html>
+<!-- Página de detalhes de um edital específico, com formulário de envio de lance para FORNECEDOR. -->
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Título dinâmico: concatena "EditaisGOV - " com o título do edital. -->
+    <!-- O valor estático serve como fallback no template estático. -->
     <title th:text="'EditaisGOV - ' + ${edital.titulo}">EditaisGOV - Detalhes do Edital</title>
     <link rel="icon" type="image/png" th:href="@{/edital-icon.png}">
     <th:block th:replace="~{layout :: head-content}"></th:block>
     <style>
+        /* Classes de feedback de erro/validação dos campos do formulário de lance */
         .field-error {
             display: none;
             color: #dc3545;
             font-size: 0.825rem;
             margin-top: 0.25rem;
         }
-
         .field-error.visible {
             display: block;
         }
-
         .form-control.is-invalid {
             border-color: #dc3545;
             box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.15);
@@ -32,38 +34,47 @@
 
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div class="d-flex align-items-center gap-3">
+            <!-- Botão de voltar para a lista geral de editais -->
             <a th:href="@{/editais}" class="btn btn-outline-secondary btn-sm shadow-sm">&larr; Editais</a>
             <h1 class="h2 text-primary mb-0">Detalhes do Edital</h1>
         </div>
+        <!-- Link para a página de lances deste edital específico. -->
+        <!-- th:href="@{/editais/{id}/lances(id=${edital.id})}": gera a URL com o ID dinâmico. -->
         <a th:href="@{/editais/{id}/lances(id=${edital.id})}" class="btn btn-outline-primary shadow-sm">
             Ver Lances &rarr;
         </a>
     </div>
 
-    <!-- Mensagens de Sucesso / Erro -->
+    <!-- Mensagens de feedback via flash attribute do controller -->
     <div th:if="${mensagemSucesso}" class="alert alert-success alert-dismissible fade show shadow-sm" role="alert">
         <strong>Sucesso!</strong> <span th:text="${mensagemSucesso}"></span>
         <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fechar"></button>
     </div>
-    <!-- Erro do servidor (inline, mesmo padrão dos campos) -->
+    <!-- Erro exibido inline (não como toast descartável), seguindo o mesmo padrão visual. -->
     <div th:if="${errorMessage}" class="field-error visible mb-3" th:text="${errorMessage}"></div>
 
+    <!-- Layout em duas colunas: informações do edital (esq) + ação de lance (dir) -->
     <div class="row g-4">
-        <!-- Coluna Esquerda: Informações do Edital -->
+
+        <!-- ── Coluna Esquerda: Informações do Edital ── -->
         <div class="col-lg-7">
             <div class="card shadow-sm h-100">
                 <div class="card-header bg-primary text-white">
+                    <!-- th:text acessa o campo titulo do EditalDTO via getter getTitulo() -->
                     <h4 class="mb-0 fs-5" th:text="${edital.titulo}">Título do Edital</h4>
                 </div>
                 <div class="card-body">
                     <div class="row mb-4">
                         <div class="col-sm-4 mb-3 mb-sm-0">
                             <span class="text-muted text-uppercase small fw-bold">Nº do Edital</span>
+                            <!-- Concatena o símbolo '#' com o ID numérico do edital -->
                             <div class="fs-5 fw-semibold" th:text="'#' + ${edital.id}">#1</div>
                         </div>
                         <div class="col-sm-4 mb-3 mb-sm-0">
                             <span class="text-muted text-uppercase small fw-bold">Status</span>
                             <div>
+                                <!-- th:classappend: aplica bg-success se ABERTO, bg-secondary se fechado. -->
+                                <!-- th:text: exibe o valor do status ("ABERTO", "FECHADO", etc.) -->
                                 <span class="badge px-3 py-2"
                                       th:classappend="${edital.status == 'ABERTO'} ? 'bg-success' : 'bg-secondary'"
                                       th:text="${edital.status}">
@@ -72,12 +83,14 @@
                         </div>
                         <div class="col-sm-4">
                             <span class="text-muted text-uppercase small fw-bold">Data de Fechamento</span>
+                            <!-- Chama getDataFechamentoFormatada() do EditalDTO. -->
                             <div class="fs-6 fw-semibold mt-1" th:text="${edital.dataFechamentoFormatada}">-</div>
                         </div>
                     </div>
 
                     <div>
                         <span class="text-muted text-uppercase small fw-bold">Descrição</span>
+                        <!-- white-space: pre-wrap: preserva quebras de linha da descrição. -->
                         <p class="mt-2 text-dark" style="white-space: pre-wrap;" th:text="${edital.descricao}">Descrição
                             do edital.</p>
                     </div>
@@ -85,25 +98,31 @@
             </div>
         </div>
 
-        <!-- Coluna Direita: Envio de Lance -->
+        <!-- ── Coluna Direita: Envio de Lance / Avisos ── -->
         <div class="col-lg-5">
 
-            <!-- Formulário de lance para Fornecedor logado em edital Aberto -->
+            <!-- Formulário de lance: só renderizado se o usuário for FORNECEDOR E o edital estiver ABERTO. -->
+            <!-- A condição usa 'and' para combinar duas expressões booleanas. -->
             <div th:if="${role == 'FORNECEDOR' and edital.status == 'ABERTO'}"
                  class="card shadow-sm border-success mb-4">
                 <div class="card-header bg-success text-white">
                     <h5 class="mb-0">Enviar Lance</h5>
                 </div>
                 <div class="card-body bg-success bg-opacity-10">
+                    <!-- th:action: URL do POST de envio de lance com o ID do edital. -->
+                    <!-- novalidate: desabilita validação nativa do browser. -->
                     <form th:action="@{/editais/{id}/lances(id=${edital.id})}" method="post" id="formLance" novalidate>
                         <div class="mb-3">
                             <label for="valor" class="form-label fw-bold text-success">Valor do Lance (R$)</label>
                             <div class="input-group input-group-lg">
                                 <span class="input-group-text border-success text-success bg-white">R$</span>
+                                <!-- step="0.01": permite valores decimais com até 2 casas. -->
+                                <!-- min="0.01": impede valores negativos ou zero na validação nativa. -->
                                 <input type="number" id="valor" name="valor"
                                        class="form-control border-success"
                                        placeholder="0.00" step="0.01" min="0.01">
                             </div>
+                            <!-- div para mensagem de erro do JS de validação -->
                             <div class="field-error" id="valor-error"></div>
                             <div class="form-text">Informe o valor em reais usando ponto (Ex: 1500.00)</div>
                         </div>
@@ -116,7 +135,8 @@
                 </div>
             </div>
 
-            <!-- Aviso de edital fechado para fornecedor -->
+            <!-- Aviso exibido para FORNECEDOR quando o edital já está fechado. -->
+            <!-- th:if: condição inversa do formulário acima. -->
             <div th:if="${role == 'FORNECEDOR' and edital.status != 'ABERTO'}"
                  class="card shadow-sm border-secondary mb-4 bg-light">
                 <div class="card-body text-center text-secondary py-4">
@@ -125,7 +145,8 @@
                 </div>
             </div>
 
-            <!-- Aviso para usuários que não são fornecedores -->
+            <!-- Aviso para usuários não-fornecedores (ex: ORGAO) que não podem enviar lances. -->
+            <!-- th:if="${role != 'FORNECEDOR'}": cobre qualquer role que não seja fornecedor. -->
             <div th:if="${role != 'FORNECEDOR'}" class="card shadow-sm border-info mb-4 bg-light">
                 <div class="card-body text-info text-center py-4">
                     <h5 class="mb-3">Modo Visualização</h5>
@@ -134,7 +155,7 @@
                 </div>
             </div>
 
-            <!-- Regras básicas -->
+            <!-- Painel informativo com as regras de negócio do sistema de lances -->
             <div class="card shadow-sm">
                 <div class="card-header bg-light">
                     <h6 class="mb-0 text-muted">Regras do Lance</h6>
@@ -156,31 +177,37 @@
 <script th:src="@{/webjars/bootstrap/5.3.8/js/bootstrap.bundle.min.js}"></script>
 <script>
     (function () {
+        // Referências aos elementos do formulário de lance
         const form = document.getElementById('formLance');
         const btn = document.getElementById('btnEnviarLance');
         const valorInput = document.getElementById('valor');
         const valorError = document.getElementById('valor-error');
 
+        // Guard: se o formulário não existir na página (ex: edital fechado), encerra
         if (!form || !valorInput) return;
 
+        // Exibe mensagem de erro visual no campo de valor
         function showError(input, errorEl, message) {
             errorEl.textContent = message;
             input.classList.add('is-invalid');
             errorEl.classList.add('visible');
         }
 
+        // Remove o estado de erro do campo de valor
         function clearError(input, errorEl) {
             input.classList.remove('is-invalid');
             errorEl.classList.remove('visible');
             errorEl.textContent = '';
         }
 
+        // validateValor: valida se o valor é não-vazio e maior que zero
         function validateValor() {
             const val = valorInput.value;
             if (val === '' || val === null) {
                 showError(valorInput, valorError, 'O valor do lance não pode ser vazio.');
                 return false;
             } else if (parseFloat(val) <= 0) {
+                // parseFloat converte a string para número
                 showError(valorInput, valorError, 'O valor do lance deve ser maior que zero.');
                 return false;
             }
@@ -188,10 +215,10 @@
             return true;
         }
 
-        /* ── Validação ao sair do campo (blur) ── */
+        // Validação ao sair do campo (blur)
         valorInput.addEventListener('blur', validateValor);
 
-        /* ── Remove erro enquanto o usuário corrige ── */
+        // Remove erro em tempo real quando o usuário corrige o valor
         valorInput.addEventListener('input', function () {
             if (this.value !== '' && parseFloat(this.value) > 0) {
                 clearError(this, valorError);
@@ -200,7 +227,9 @@
             }
         });
 
-        /* ── Validação no submit + prevenção de duplo envio ── */
+        // Validação no submit + prevenção de duplo envio:
+        // Se inválido: bloqueia o submit via e.preventDefault().
+        // Se válido: desabilita o botão para evitar envio duplo.
         form.addEventListener('submit', function (e) {
             if (!validateValor()) {
                 e.preventDefault();
