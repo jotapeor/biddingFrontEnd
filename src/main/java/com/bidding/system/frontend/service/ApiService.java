@@ -19,8 +19,12 @@ public class ApiService {
     private final RestClient restClient;
 
     public ApiService() {
+        String baseUrl = System.getenv("API_URL");
+        if (baseUrl == null || baseUrl.isEmpty()) {
+            baseUrl = "https://biddingbackend-j3gi.onrender.com/api";
+        }
         this.restClient = RestClient.builder()
-                .baseUrl("http://localhost:8080/api")
+                .baseUrl(baseUrl)
                 .build();
     }
 
