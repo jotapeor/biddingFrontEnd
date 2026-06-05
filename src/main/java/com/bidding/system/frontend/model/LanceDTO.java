@@ -4,16 +4,19 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 
 import java.time.LocalDateTime;
 
+// Data Transfer Object (DTO) que encapsula as informações de um lance individual.
+// Utilizado para receber dados do backend e mapear submissões de lance no frontend.
 public class LanceDTO {
 
-    private Long id;
-    private double valor;
+    private Long id; // Identificador único do lance
+    private double valor; // Valor monetário ofertado no lance
 
+    // Data e hora em que o lance foi registrado. O JsonFormat cuida do parse na integração com a API.
     @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
     private LocalDateTime data_lance;
 
-    private Long id_edital;
-    private Long id_usuario;
+    private Long id_edital; // Referência (chave estrangeira) para o edital ao qual este lance pertence
+    private Long id_usuario; // Referência para o identificador do usuário (fornecedor) que fez a oferta
 
     public LanceDTO() {
     }

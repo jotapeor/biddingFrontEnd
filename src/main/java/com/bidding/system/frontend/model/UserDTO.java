@@ -1,13 +1,15 @@
 package com.bidding.system.frontend.model;
 
+// Data Transfer Object que carrega os dados completos para registro de um novo usuário.
+// Usado pelo formulário de cadastro na rota /registrar.
 public class UserDTO {
 
-    private Long id;
-    private String nome;
-    private String email;
-    private String senha;
-    private String confirmarSenha;
-    private String role;
+    private Long id; // Identificador do usuário no banco
+    private String nome; // Nome completo ou razão social informada no cadastro
+    private String email; // E-mail usado para login e comunicação posterior
+    private String senha; // Senha em texto plano provinda do formulário, a ser criptografada/armazenada no backend
+    private String confirmarSenha; // Confirmação de senha (usada tipicamente para validação adicional de input no frontend)
+    private String role; // Role de acesso, que para novos registros pelo frontend publico, será forçada para "FORNECEDOR"
 
     public UserDTO() {
     }

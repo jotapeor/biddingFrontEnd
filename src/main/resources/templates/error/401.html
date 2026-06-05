@@ -1,23 +1,36 @@
 <!DOCTYPE html>
+<!-- 401.html — Página de erro HTTP 401 (Não Autenticado). -->
+<!-- O Spring Security redireciona automaticamente para esta página quando um usuário não autenticado tenta acessar uma rota protegida. -->
+<!-- O mapeamento é feito pela configuração de segurança no back-end apontando para /error/401. -->
+<!-- O botão redireciona para a página de login via th:href="@{/login}". -->
+<!-- A navbar e o footer são incluídos via fragmentos do layout.html. -->
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
     <title>Acesso Negado</title>
+    <!-- Importa Bootstrap CSS e style.css via fragmento reutilizável definido em layout.html. -->
     <th:block th:replace="~{layout :: head-content}"></th:block>
 </head>
+<!-- d-flex flex-column min-vh-100: mantém o footer no rodapé mesmo nesta página de erro, que possui pouco conteúdo. -->
 <body class="d-flex flex-column min-vh-100 bg-light">
 
+<!-- Inclui a navbar global definida em layout.html -->
 <div th:replace="~{layout :: navbar}"></div>
 
+<!-- Conteúdo central da página de erro -->
 <div class="container text-center mt-5">
+    <!-- Código de status HTTP em destaque com cor vermelha (text-danger) -->
     <h1 class="display-1 text-danger fw-bold">401</h1>
     <h3 class="mb-4">Não Autenticado</h3>
     <p class="lead text-muted mb-5">Você precisa fazer login para acessar esta página.</p>
+    <!-- Botão de ação: redireciona o usuário para a página de login -->
     <a th:href="@{/login}" class="btn btn-primary btn-lg px-5 shadow-sm">Fazer Login</a>
 </div>
 
+<!-- Inclui o rodapé definido em layout.html -->
 <div th:replace="~{layout :: footer}"></div>
 
+<!-- Bootstrap JS: necessário para funcionalidades como collapse da navbar em mobile -->
 <script th:src="@{/webjars/bootstrap/5.3.8/js/bootstrap.bundle.min.js}"></script>
 </body>
 </html>

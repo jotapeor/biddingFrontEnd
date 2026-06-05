@@ -1,47 +1,72 @@
 <!DOCTYPE html>
+<!-- layout.html — Template base com fragmentos reutilizáveis (navbar e footer). -->
+<!-- Outros templates incluem estes fragmentos via th:replace ou th:insert. -->
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <!-- Este fragmento de head pode ser incluido pelas paginas se desejarem -->
+    <!-- Fragmento "head-content": importa Bootstrap CSS e o CSS customizado do projeto. -->
+    <!-- Definido aqui para ser reusado com th:replace="~{layout :: head-content}". -->
     <th:block th:fragment="head-content">
+        <!-- Bootstrap 5: carregado via WebJars (dependência Maven). -->
         <link th:href="@{/webjars/bootstrap/5.3.8/css/bootstrap.min.css}" rel="stylesheet">
+        <!-- Folha de estilos customizada do projeto. -->
         <link th:href="@{/css/style.css}" rel="stylesheet">
     </th:block>
 </head>
+<!-- d-flex flex-column min-vh-100: layout flexbox em coluna com altura mínima de 100vh. -->
+<!-- Isso garante que o footer fique sempre no final da tela. -->
 <body class="d-flex flex-column min-vh-100">
 
+<!-- Fragmento "navbar": barra de navegação global. -->
+<!-- Usa session.token, session.role e session.nome — atributos gravados no HttpSession após login. -->
 <nav th:fragment="navbar" class="navbar navbar-expand-lg navbar-dark bg-primary shadow-sm mb-4">
     <div class="container">
+        <!-- Logo/brand clicável que redireciona para a raiz da aplicação -->
         <a class="navbar-brand fw-bold" th:href="@{/}">EditaisGOV</a>
+
+        <!-- Botão hamburguer visível em telas pequenas (mobile). -->
+        <!-- data-bs-target="#navbarNav" controla o collapse do menu. -->
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
                 aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
             <span class="navbar-toggler-icon"></span>
         </button>
+
         <div class="collapse navbar-collapse" id="navbarNav">
             <ul class="navbar-nav me-auto">
+                <!-- th:if="${session.token != null}": exibe link apenas quando o usuário está logado. -->
                 <li class="nav-item" th:if="${session.token != null}">
                     <a class="nav-link text-white" th:href="@{/editais}">Editais</a>
                 </li>
-                <!-- Novo Edital (apenas COMPRADOR ou roles diferentes de fornecedor) -->
+
+                <!-- Exibe "Novo Edital" apenas para usuários que NÃO são FORNECEDOR (ex: ORGAO). -->
                 <li class="nav-item" th:if="${session.role != 'FORNECEDOR' and session.role != null}">
                     <a class="nav-link text-white" th:href="@{/novo-edital}">Novo Edital</a>
                 </li>
-                <!-- Meus Lances (apenas FORNECEDOR) -->
+
+                <!-- Exibe "Meus Lances" exclusivamente para FORNECEDOR. -->
                 <li class="nav-item" th:if="${session.role == 'FORNECEDOR'}">
                     <a class="nav-link text-white" th:href="@{/meus-lances}">Meus Lances</a>
                 </li>
             </ul>
+
             <div class="d-flex align-items-center gap-2">
-                <!-- Bem-vindo, nome -->
+                <!-- Exibe o nome e e-mail do usuário logado quando session.nome estiver presente. -->
                 <div th:if="${session.nome != null}" class="d-flex flex-column align-items-end me-1">
+                    <!-- th:text concatena a string literal 'Bem-vindo, ' com o valor da sessão -->
                     <span class="text-white fw-semibold" style="font-size:0.85rem;"
                           th:text="'Bem-vindo, ' + ${session.nome}"></span>
                     <span class="text-white-50" style="font-size:0.72rem;" th:text="${session.email}"></span>
                 </div>
+
+                <!-- Fallback: exibe apenas o e-mail se session.nome for nulo. -->
                 <div th:if="${session.nome == null and session.email != null}" class="text-white-50 small me-2"
                      th:text="${session.email}"></div>
+
+                <!-- Badge com a role do usuário (ex: "FORNECEDOR", "ORGAO") -->
                 <span class="badge bg-white text-primary" th:if="${session.role != null}"
                       th:text="${session.role}"></span>
+
+                <!-- Botão de logout visível apenas quando há token ativo na sessão -->
                 <a th:if="${session.token != null}" th:href="@{/logout}"
                    class="btn btn-outline-light btn-sm ms-1">Sair</a>
             </div>
@@ -49,7 +74,8 @@
     </div>
 </nav>
 
-<!-- Footer Fragment -->
+<!-- Fragmento "footer": rodapé reutilizável incluído em todas as páginas. -->
+<!-- mt-auto: empurra o footer para o final da página. -->
 <footer th:fragment="footer" class="bg-dark text-white-50 mt-auto py-3">
     <div class="container text-center">
         <small>&copy; 2026 EditaisGOV. Todos os direitos reservados.</small>

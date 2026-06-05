@@ -1,8 +1,10 @@
 <!DOCTYPE html>
+<!-- Página que exibe todos os lances de um edital, acessível para ORGAO e FORNECEDOR. -->
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Título dinâmico combinando o nome do edital para contexto -->
     <title th:text="'Lances - ' + ${edital.titulo}">EditaisGOV - Lances do Edital</title>
     <link rel="icon" type="image/png" th:href="@{/edital-icon.png}">
     <th:block th:replace="~{layout :: head-content}"></th:block>
@@ -13,16 +15,17 @@
 
 <div class="container mt-4 flex-grow-1">
 
-    <!-- Header -->
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div class="d-flex align-items-center gap-3">
+            <!-- Botão de voltar: leva ao edital de origem, não à lista geral. -->
+            <!-- th:href usa o ID do edital para montar a URL correta de retorno. -->
             <a th:href="@{/editais/{id}(id=${edital.id})}" class="btn btn-outline-secondary btn-sm shadow-sm">&larr;
                 Voltar ao Edital</a>
             <h1 class="h2 text-primary mb-0">Lances do Edital</h1>
         </div>
     </div>
 
-    <!-- Informações do Edital -->
+    <!-- Card de resumo do edital: exibe contexto sem precisar voltar para a página de detalhes -->
     <div class="card shadow-sm mb-4 border-0 border-start border-primary border-4">
         <div class="card-body">
             <div class="row align-items-center">
@@ -43,19 +46,20 @@
         </div>
     </div>
 
-    <!-- Aviso de privacidade (edital aberto, fornecedor) -->
+    <!-- Aviso de privacidade exibido para FORNECEDOR quando o edital ainda está ABERTO. -->
+    <!-- O frontend informa isso explicitamente ao usuário para evitar confusão. -->
     <div th:if="${edital.status == 'ABERTO' and role == 'FORNECEDOR'}" class="alert alert-info shadow-sm mb-4">
         <strong>Modo de Privacidade:</strong> Como o edital ainda está aberto, você está vendo <strong>apenas o seu
         lance</strong>. Os demais serão revelados quando o edital for encerrado.
     </div>
 
-    <!-- Aviso de edital encerrado -->
+    <!-- Aviso de edital encerrado: informa que todos os lances estão visíveis. -->
     <div th:if="${edital.status != 'ABERTO'}" class="alert alert-secondary shadow-sm mb-4">
         <strong>Edital Encerrado:</strong> A fase de lances acabou. Confira abaixo o histórico completo de todos os
         lances registrados.
     </div>
 
-    <!-- Tabela de Lances -->
+    <!-- Tabela de lances -->
     <div class="card shadow-sm">
         <div class="card-header bg-white py-3">
             <h5 class="mb-0 text-dark">Histórico de Lances</h5>
@@ -72,23 +76,33 @@
                     </tr>
                     </thead>
                     <tbody>
+                    <!-- Itera sobre a lista de LanceDTO passada pelo controller -->
                     <tr th:each="lance : ${lances}">
                         <td class="px-4 fw-bold text-muted" th:text="${lance.id}"></td>
                         <td class="text-success fw-bold fs-5">
-                            R$ <span th:text="${#numbers.formatDecimal(lance.valor, 1, 'POINT', 2, 'COMMA')}"></span>
+                            R$
+                            <!-- #numbers.formatDecimal: formata o valor numérico com separador de milhar e decimal. -->
+                            <!-- Aqui: mínimo 1 dígito inteiro, ponto milhar, 2 casas decimais, vírgula decimal. -->
+                            <span th:text="${#numbers.formatDecimal(lance.valor, 1, 'POINT', 2, 'COMMA')}"></span>
                         </td>
+                        <!-- #temporals.format: formata objetos LocalDateTime com o padrão especificado. -->
                         <td th:text="${#temporals.format(lance.data_lance, 'dd/MM/yyyy HH:mm:ss')}"></td>
                         <td>
+                            <!-- Exibe o ID do usuário que fez o lance; nome não é exposto por privacidade -->
                             <span class="badge bg-secondary" th:text="'ID: ' + ${lance.id_usuario}"></span>
                         </td>
                     </tr>
 
+                    <!-- Linha exibida quando a lista de lances está vazia. -->
+                    <!-- th:if="${#lists.isEmpty(lances)}": verifica se a coleção tem tamanho zero. -->
                     <tr th:if="${#lists.isEmpty(lances)}">
                         <td colspan="4" class="text-center py-5 text-muted">
                             <h5 class="fw-normal mb-1">Nenhum lance encontrado.</h5>
+                            <!-- Mensagem específica para FORNECEDOR em edital aberto -->
                             <p class="small mb-0" th:if="${edital.status == 'ABERTO' and role == 'FORNECEDOR'}">
                                 Você ainda não enviou nenhum lance para este edital.
                             </p>
+                            <!-- th:unless: renderiza quando a condição é FALSA. -->
                             <p class="small mb-0" th:unless="${edital.status == 'ABERTO' and role == 'FORNECEDOR'}">
                                 Este edital não possui lances registrados.
                             </p>

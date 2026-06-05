@@ -7,16 +7,22 @@ import org.springframework.format.annotation.DateTimeFormat;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
+// Data Transfer Object (DTO) para representar os dados de um Edital.
+// Usado para serialização/deserialização na comunicação com a API backend e binding em formulários web.
 public class EditalDTO {
 
-    private Long id;
-    private String titulo;
-    private String descricao;
+    private Long id; // Identificador único do edital gerado no banco de dados
+    private String titulo; // Título principal do edital
+    private String descricao; // Descrição detalhada do escopo do edital
+    
+    // Data de encerramento de recebimento de lances.
+    // Mapeado em JSON com a chave "data_fechamento" e em formulários Spring no formato "yyyy-MM-dd'T'HH:mm".
     @JsonProperty("data_fechamento")
     @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
     @DateTimeFormat(pattern = "yyyy-MM-dd'T'HH:mm")
     private LocalDateTime dataFechamento;
-    private String status;
+    
+    private String status; // Status do edital, que dita se ele ainda aceita lances ou já foi encerrado
 
     public EditalDTO() {
     }
@@ -69,6 +75,8 @@ public class EditalDTO {
         this.status = status;
     }
 
+    // Método auxiliar para apresentação na view.
+    // Formata a data de fechamento para um padrão brasileiro de leitura amigável (dd/MM/yyyy HH:mm).
     public String getDataFechamentoFormatada() {
         if (dataFechamento == null) return "-";
         return dataFechamento.format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm"));
