@@ -2,7 +2,7 @@
 
 > 🖥️ Interface Web para o Sistema de Licitações Governamentais (EditaisGOV) desenvolvida com Spring Boot, Thymeleaf e Bootstrap 5.
 
-Esta é a aplicação FrontEnd do Sistema de Licitações, projetada para oferecer uma experiência de usuário segura, responsiva e altamente interativa tanto para Compradores Governamentais (criação e gerenciamento de editais) quanto para Fornecedores (envio de lances). Ela consome uma API REST (Backend) e gerencia estado e segurança por meio de tokens JWT.
+Este é o FrontEnd do Sistema de Licitações Governamentais, projetado para oferecer uma experiência de usuário segura, responsiva e altamente interativa tanto para Compradores Governamentais (criação e gerenciamento de editais) quanto para Fornecedores (envio de lances). Ele consome uma API REST (Backend) e gerencia estado e segurança por meio de tokens JWT.
 
 ## 🚀 Funcionalidades Principais
 
