@@ -5,22 +5,20 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
-// DTO específico para a funcionalidade "Meus Lances", agregando informações
-// sobre o lance do usuário e informações sumarizadas do edital (como título e status).
-// Isso evita a necessidade de múltiplas chamadas à API no backend.
 public class MeuLanceDTO {
-    
-    private Long idLance; // Identificador interno do lance no banco
-    private double valor; // Valor do lance submetido
 
-    // Data e hora em que o lance foi efetuado.
+    private Long idLance;
+    private double valor;
+    /**
+     * Registra o relógio e a data no exato ato do salvamento na tabela lances.
+     * Mapeado com {@code @JsonFormat} em ISO8601 para conversão Jackson correta vinda do backend.
+     */
     @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
     private LocalDateTime dataLance;
-
-    private Long idEdital; // Identificador do edital respectivo
-    private String tituloEdital; // Título do edital para fácil exibição na tabela
-    private String statusEdital; // Status do edital (ex: ABERTO, FECHADO) na hora da consulta
-    private boolean vencedor; // Flag booleana indicando se este lance é considerado o vencedor atual/final do certame
+    private Long idEdital;
+    private String tituloEdital;
+    private String statusEdital;
+    private boolean vencedor;
 
     public MeuLanceDTO() {
     }
@@ -81,8 +79,12 @@ public class MeuLanceDTO {
         this.vencedor = vencedor;
     }
 
-    // Formata a data do lance para o padrão "dd/MM/yyyy HH:mm:ss" a ser apresentado na view.
-    // Retorna String contendo a data formatada, ou "-" se ausente.
+    /**
+     * Fornece a Data original renderizada de um modo legível e agradável
+     * ao Thymeleaf usando padrão "dd/MM/yyyy HH:mm:ss".
+     *
+     * @return String contendo os caracteres textuais de tempo. "-" para instâncias não estipuladas/vazias.
+     */
     public String getDataLanceFormatada() {
         if (dataLance == null) return "-";
         return dataLance.format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss"));

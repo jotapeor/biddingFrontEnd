@@ -37,10 +37,10 @@
                     </p>
                 </div>
                 <div class="col-md-4 text-md-end mt-3 mt-md-0">
-                    <span class="badge px-3 py-2"
-                          th:classappend="${edital.status == 'ABERTO'} ? 'bg-success' : 'bg-secondary'"
-                          th:text="${edital.status}">
-                    </span>
+                    <span th:if="${edital.status != null and #strings.startsWith(edital.status, 'ABERTO')}"
+                          class="badge px-3 py-2 bg-success" th:text="${edital.status}"></span>
+                    <span th:if="${edital.status == null or !#strings.startsWith(edital.status, 'ABERTO')}"
+                          class="badge px-3 py-2 bg-secondary" th:text="${edital.status}"></span>
                 </div>
             </div>
         </div>
@@ -48,13 +48,14 @@
 
     <!-- Aviso de privacidade exibido para FORNECEDOR quando o edital ainda está ABERTO. -->
     <!-- O frontend informa isso explicitamente ao usuário para evitar confusão. -->
-    <div th:if="${edital.status == 'ABERTO' and role == 'FORNECEDOR'}" class="alert alert-info shadow-sm mb-4">
+    <div th:if="${#strings.startsWith(edital.status, 'ABERTO') and role == 'FORNECEDOR'}"
+         class="alert alert-info shadow-sm mb-4">
         <strong>Modo de Privacidade:</strong> Como o edital ainda está aberto, você está vendo <strong>apenas o seu
         lance</strong>. Os demais serão revelados quando o edital for encerrado.
     </div>
 
     <!-- Aviso de edital encerrado: informa que todos os lances estão visíveis. -->
-    <div th:if="${edital.status != 'ABERTO'}" class="alert alert-secondary shadow-sm mb-4">
+    <div th:if="${!#strings.startsWith(edital.status, 'ABERTO')}" class="alert alert-secondary shadow-sm mb-4">
         <strong>Edital Encerrado:</strong> A fase de lances acabou. Confira abaixo o histórico completo de todos os
         lances registrados.
     </div>
@@ -72,7 +73,8 @@
                         <th scope="col" class="px-4"># ID Lance</th>
                         <th scope="col">Valor (R$)</th>
                         <th scope="col">Data/Hora</th>
-                        <th scope="col">Fornecedor (ID)</th>
+                        <th scope="col">Fornecedor</th>
+                        <th scope="col">Resultado</th>
                     </tr>
                     </thead>
                     <tbody>
@@ -88,22 +90,31 @@
                         <!-- #temporals.format: formata objetos LocalDateTime com o padrão especificado. -->
                         <td th:text="${#temporals.format(lance.data_lance, 'dd/MM/yyyy HH:mm:ss')}"></td>
                         <td>
-                            <!-- Exibe o ID do usuário que fez o lance; nome não é exposto por privacidade -->
-                            <span class="badge bg-secondary" th:text="'ID: ' + ${lance.id_usuario}"></span>
+                            <!-- Exibe o ID do usuário e o nome -->
+                            <span class="badge bg-secondary"
+                                  th:text="${lance.nome_fornecedor} + ' (ID: ' + ${lance.id_usuario} + ')'"></span>
+                        </td>
+                        <td>
+                            <span th:if="${lance.vencedor}"
+                                  class="badge bg-warning text-dark px-3 py-2 fs-6 shadow-sm border border-warning">
+                                🏆 VENCEDOR
+                            </span>
                         </td>
                     </tr>
 
                     <!-- Linha exibida quando a lista de lances está vazia. -->
                     <!-- th:if="${#lists.isEmpty(lances)}": verifica se a coleção tem tamanho zero. -->
                     <tr th:if="${#lists.isEmpty(lances)}">
-                        <td colspan="4" class="text-center py-5 text-muted">
+                        <td colspan="5" class="text-center py-5 text-muted">
                             <h5 class="fw-normal mb-1">Nenhum lance encontrado.</h5>
                             <!-- Mensagem específica para FORNECEDOR em edital aberto -->
-                            <p class="small mb-0" th:if="${edital.status == 'ABERTO' and role == 'FORNECEDOR'}">
+                            <p class="small mb-0"
+                               th:if="${#strings.startsWith(edital.status, 'ABERTO') and role == 'FORNECEDOR'}">
                                 Você ainda não enviou nenhum lance para este edital.
                             </p>
                             <!-- th:unless: renderiza quando a condição é FALSA. -->
-                            <p class="small mb-0" th:unless="${edital.status == 'ABERTO' and role == 'FORNECEDOR'}">
+                            <p class="small mb-0"
+                               th:unless="${#strings.startsWith(edital.status, 'ABERTO') and role == 'FORNECEDOR'}">
                                 Este edital não possui lances registrados.
                             </p>
                         </td>

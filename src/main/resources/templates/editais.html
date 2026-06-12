@@ -16,8 +16,6 @@
 <div class="container mt-4 flex-grow-1">
 
     <!-- Mensagens de feedback vindas via RedirectAttributes (flash attributes) do controller. -->
-    <!-- th:if="${mensagemSucesso}": renderiza somente quando o atributo existe no model. -->
-    <!-- alert-dismissible + data-bs-dismiss="alert": permite fechar o alerta pelo botão X. -->
     <div th:if="${mensagemSucesso}" class="alert alert-success alert-dismissible fade show shadow-sm" role="alert">
         <strong>Sucesso!</strong> <span th:text="${mensagemSucesso}"></span>
         <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fechar"></button>
@@ -29,9 +27,7 @@
 
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h1 class="h2 text-primary mb-0">Sistema de Editais</h1>
-        <!-- Botão "Novo Edital" visível apenas para quem não é FORNECEDOR (ex: ORGAO). -->
-        <!-- th:if="${role != 'FORNECEDOR'}": role foi adicionada ao model pelo EditalController. -->
-        <!-- th:href="@{/novo-edital}": URL gerada pelo Thymeleaf considerando o context path. -->
+        <!-- Botão "Novo Edital" visível apenas para quem não é FORNECEDOR. -->
         <a th:if="${role != 'FORNECEDOR'}" th:href="@{/novo-edital}" class="btn btn-success shadow-sm">
             &#43; Novo Edital
         </a>
@@ -41,16 +37,16 @@
         <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
             <h5 class="mb-0 text-dark">Editais Disponíveis</h5>
 
-            <!-- Formulário de filtro por urgência. -->
-            <!-- method="get": envia o filtro como query string (?urgente=on). -->
+            <!-- Formulário de filtro por urgência: botão submit padrão, sem JavaScript. -->
             <form th:action="@{/editais}" method="get" class="d-flex align-items-center m-0">
-                <div class="form-check form-switch me-3">
-                    <!-- th:checked="${param.urgente != null}": marca o checkbox se o parâmetro existir na URL. -->
-                    <input class="form-check-input" type="checkbox" role="switch" id="urgenteSwitch" name="urgente"
-                           th:checked="${param.urgente != null}">
-                    <label class="form-check-label text-danger fw-bold" for="urgenteSwitch">Apenas Urgentes</label>
+                <button type="submit" name="urgente" value="true" th:if="${param.urgente == null}"
+                        class="btn btn-outline-danger shadow-sm fw-bold rounded-pill px-3">
+                    &#128293; Apenas Urgentes
+                </button>
+                <div th:if="${param.urgente != null}" class="d-flex align-items-center gap-2">
+                    <span class="badge bg-danger rounded-pill px-3 py-2">&#9989; Filtrando Urgentes</span>
+                    <a th:href="@{/editais}" class="btn btn-outline-secondary btn-sm rounded-pill">Limpar filtro</a>
                 </div>
-                <button type="submit" class="btn btn-sm btn-outline-secondary">Filtrar</button>
             </form>
         </div>
 
@@ -69,28 +65,22 @@
                     <tbody>
                     <!-- th:each="edital : ${editais}": itera sobre a lista de EditalDTO passada pelo controller. -->
                     <tr th:each="edital : ${editais}" class="card-hover">
-                        <!-- th:text="${edital.id}": acessa a propriedade id do EditalDTO via getter -->
                         <th scope="row" class="px-4 text-muted" th:text="${edital.id}">1</th>
                         <td class="fw-semibold text-dark" th:text="${edital.titulo}">Título</td>
                         <td>
-                            <!-- data-time: atributo customizado com o valor bruto para ser lido pelo JavaScript. -->
-                            <!-- th:text="${edital.dataFechamentoFormatada}": chama método que retorna "dd/MM/yyyy HH:mm". -->
-                            <span class="data-fechamento" th:attr="data-time=${edital.dataFechamento}"
-                                  th:text="${edital.dataFechamentoFormatada}"></span>
+                            <!-- th:text exibe a data formatada calculada pelo Java. -->
+                            <span th:text="${edital.dataFechamentoFormatada}"></span>
                         </td>
                         <td>
-                            <!-- th:classappend: adiciona dinamicamente uma classe CSS ao elemento. -->
-                            <span class="badge px-2 py-1"
-                                  th:classappend="${edital.status == 'ABERTO'} ? 'bg-success' : 'bg-secondary'"
-                                  th:text="${edital.status}">
-                            </span>
-                            <!-- Badge de urgência, inicialmente oculto com d-none. -->
-                            <!-- th:id="'badge-urgent-' + ${edital.id}": gera IDs únicos por linha. -->
-                            <span class="badge bg-danger ms-1 badge-urgent d-none"
-                                  th:id="'badge-urgent-' + ${edital.id}">Encerrando em breve!</span>
+                            <span th:if="${edital.status != null and #strings.startsWith(edital.status, 'ABERTO')}"
+                                  class="badge px-2 py-1 bg-success" th:text="${edital.status}">ABERTO</span>
+                            <span th:if="${edital.status == null or !#strings.startsWith(edital.status, 'ABERTO')}"
+                                  class="badge px-2 py-1 bg-secondary" th:text="${edital.status}"></span>
+                            <!-- Badge de urgência calculado pelo Java no controller (sem JavaScript). -->
+                            <!-- th:if="${edital.encerrando}": exibido apenas quando a flag é true. -->
+                            <span th:if="${edital.encerrando}" class="badge bg-danger ms-1">Encerrando em breve!</span>
                         </td>
                         <td class="text-end px-4">
-                            <!-- th:href="@{/editais/{id}(id=${edital.id})}": sintaxe Thymeleaf para URLs com variáveis de path. -->
                             <a th:href="@{/editais/{id}(id=${edital.id})}"
                                class="btn btn-primary btn-sm px-3 shadow-sm">
                                 Ver Detalhes
@@ -113,31 +103,5 @@
 <div th:replace="~{layout :: footer}"></div>
 
 <script th:src="@{/webjars/bootstrap/5.3.8/js/bootstrap.bundle.min.js}"></script>
-<script>
-    // Script de urgência: exibe o badge "Encerrando em breve!" nos editais que fecham nas próximas 48 horas.
-    document.addEventListener("DOMContentLoaded", function () {
-        // Seleciona todos os elementos que possuem a classe .data-fechamento
-        const rows = document.querySelectorAll('.data-fechamento');
-        const now = new Date().getTime(); // Timestamp atual em milissegundos
-        const limit = 48 * 60 * 60 * 1000; // 48 horas convertidas para milissegundos
-
-        rows.forEach(function (row) {
-            // Lê o atributo data-time injetado pelo Thymeleaf com o LocalDateTime bruto
-            const timeStr = row.getAttribute('data-time');
-            if (timeStr) {
-                // Converte a string de data para timestamp
-                const closeDate = new Date(timeStr).getTime();
-                const diff = closeDate - now; // Diferença em ms entre o fechamento e agora
-
-                // Só exibe o badge se o edital ainda não fechou (diff > 0) e fecha em < 48h
-                if (diff > 0 && diff < limit) {
-                    // Localiza o badge de urgência na mesma linha (<tr>) pelo ID único
-                    const id = row.closest('tr').querySelector('.badge-urgent').id;
-                    document.getElementById(id).classList.remove('d-none'); // Torna o badge visível
-                }
-            }
-        });
-    });
-</script>
 </body>
 </html>

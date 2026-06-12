@@ -59,7 +59,7 @@
                             <!-- Badge de status do edital no momento da consulta. -->
                             <!-- Usa statusEdital que é o status atual do edital. -->
                             <span class="badge px-2 py-1"
-                                  th:classappend="${lance.statusEdital == 'ABERTO'} ? 'bg-success' : 'bg-secondary'"
+                                  th:classappend="${#strings.startsWith(lance.statusEdital, 'ABERTO')} ? 'bg-success' : 'bg-secondary'"
                                   th:text="${lance.statusEdital}">
                             </span>
                         </td>
@@ -74,20 +74,21 @@
                         <!-- Coluna de resultado: exibe estado diferente dependendo do status e vencedor -->
                         <td class="text-center">
                             <!-- Caso 1: Edital ainda ABERTO — resultado ainda não definido. -->
-                            <span th:if="${lance.statusEdital == 'ABERTO'}" class="text-muted small">
+                            <span th:if="${lance.statusEdital != null and #strings.startsWith(lance.statusEdital, 'ABERTO')}"
+                                  class="text-muted small">
                                 Aguardando encerramento
                             </span>
 
                             <!-- Caso 2: Edital encerrado E este lance é o vencedor. -->
                             <!-- lance.vencedor: campo booleano do MeuLanceDTO definido pelo backend. -->
-                            <span th:if="${lance.statusEdital != 'ABERTO' and lance.vencedor}"
+                            <span th:if="${lance.statusEdital == 'ENCERRADO' and lance.vencedor}"
                                   class="badge bg-warning text-dark px-3 py-2 fs-6 shadow-sm border border-warning">
                                 🏆 VENCEDOR
                             </span>
 
                             <!-- Caso 3: Edital encerrado E este lance NÃO é o vencedor. -->
                             <!-- !lance.vencedor: negação do booleano vencedor no Thymeleaf. -->
-                            <span th:if="${lance.statusEdital != 'ABERTO' and !lance.vencedor}"
+                            <span th:if="${lance.statusEdital == 'ENCERRADO' and !lance.vencedor}"
                                   class="badge bg-danger px-3 py-2 shadow-sm border border-danger opacity-75">
                                 Não ganhou
                             </span>
