@@ -1,15 +1,36 @@
 package com.bidding.system.frontend.model;
 
-// Data Transfer Object que carrega os dados completos para registro de um novo usuário.
-// Usado pelo formulário de cadastro na rota /registrar.
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
+
 public class UserDTO {
 
-    private Long id; // Identificador do usuário no banco
-    private String nome; // Nome completo ou razão social informada no cadastro
-    private String email; // E-mail usado para login e comunicação posterior
-    private String senha; // Senha em texto plano provinda do formulário, a ser criptografada/armazenada no backend
-    private String confirmarSenha; // Confirmação de senha (usada tipicamente para validação adicional de input no frontend)
-    private String role; // Role de acesso, que para novos registros pelo frontend publico, será forçada para "FORNECEDOR"
+    private Long id;
+    /**
+     * Designação primária do sujeito.
+     */
+    @NotBlank(message = "O nome é obrigatório")
+    @Size(min = 8, message = "O nome deve ter pelo menos 8 caracteres")
+    private String nome;
+    /**
+     * Localizador de correio digital exigido na triagem.
+     */
+    @NotBlank(message = "O e-mail é obrigatório")
+    @Email(message = "Por favor, informe um e-mail válido")
+    private String email;
+    /**
+     * Senha em texto pleno oriunda do frontend. A API cuidará de efetuar Hash.
+     */
+    @NotBlank(message = "A senha é obrigatória")
+    @Size(min = 8, message = "A senha deve ter pelo menos 8 caracteres")
+    private String senha;
+    /**
+     * Checagem tipográfica extra da senha. Verificada se coincide no Controller e na API.
+     */
+    @NotBlank(message = "A confirmação de senha é obrigatória")
+    private String confirmarSenha;
+    private String role;
 
     public UserDTO() {
     }
