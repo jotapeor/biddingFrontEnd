@@ -12,11 +12,13 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpStatusCodeException;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+import org.springframework.validation.BindingResult;
+import jakarta.validation.Valid;
 import tools.jackson.databind.ObjectMapper;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Controller
@@ -25,8 +27,6 @@ public class EditalController {
     @Autowired
     private ApiService restService;
 
-    // ── Lista de editais ────────────────────────────────────────────────────────
-
     @GetMapping("/editais")
     public String editais(
             Model model,
@@ -34,11 +34,22 @@ public class EditalController {
             @RequestParam(value = "urgente", required = false, defaultValue = "false") boolean urgente
     ) {
         String token = (String) session.getAttribute("token");
-        if (token == null) return "redirect:/login";
+        if (token == null) return "redirect:/login"; // Proteção de rota
 
         String role = (String) session.getAttribute("role");
-
         List<EditalDTO> editais = restService.listarEditais(token, urgente);
+
+        // Calcula a flag "encerrando" para exibir o alerta visual na UI
+        LocalDateTime agora = LocalDateTime.now();
+        LocalDateTime limite48h = agora.plusHours(48);
+        for (EditalDTO edital : editais) {
+            boolean encerrando = edital.getDataFechamento() != null
+                    && edital.getStatus() != null
+                    && edital.getStatus().startsWith("ABERTO")
+                    && edital.getDataFechamento().isAfter(agora)
+                    && edital.getDataFechamento().isBefore(limite48h);
+            edital.setEncerrando(encerrando);
+        }
 
         model.addAttribute("editais", editais);
         model.addAttribute("urgente", urgente);
@@ -46,8 +57,6 @@ public class EditalController {
 
         return "editais";
     }
-
-    // ── Detalhes do edital ─────────────────────────────────────────────────────
 
     @GetMapping("/editais/{id}")
     public String editalDetalhes(
@@ -65,6 +74,11 @@ public class EditalController {
             EditalDTO edital = restService.buscarEdital(id, token);
             model.addAttribute("edital", edital);
             model.addAttribute("role", role);
+
+            // Injeta DTO de lance para o formulário de lances na própria view de detalhes
+            if (!model.containsAttribute("lanceDTO")) {
+                model.addAttribute("lanceDTO", new LanceDTO());
+            }
             return "edital-detalhes";
 
         } catch (HttpStatusCodeException ex) {
@@ -84,48 +98,32 @@ public class EditalController {
         }
     }
 
-    // ── Envio de lance ─────────────────────────────────────────────────────────
-
     @PostMapping("/editais/{id}/lances")
     public String enviarLance(
             @PathVariable Long id,
-            @RequestParam("valor") double valor,
+            @Valid @ModelAttribute("lanceDTO") LanceDTO lance,
+            BindingResult result,
             HttpSession session,
             RedirectAttributes redirectAttributes
     ) {
         String token = (String) session.getAttribute("token");
         if (token == null) return "redirect:/login";
 
-        try {
-            LanceDTO lance = new LanceDTO();
-            lance.setValor(valor);
+        if (result.hasErrors()) {
+            redirectAttributes.addFlashAttribute("org.springframework.validation.BindingResult.lanceDTO", result);
+            redirectAttributes.addFlashAttribute("lanceDTO", lance);
+            return "redirect:/editais/" + id;
+        }
 
+        try {
             restService.enviarLance(id, lance, token);
-            redirectAttributes.addFlashAttribute("mensagemSucesso", "Lance de R$ " +
-                    String.format("%.2f", valor) + " enviado com sucesso!");
+            redirectAttributes.addFlashAttribute("mensagemSucesso",
+                    "Lance de R$ " + String.format("%.2f", lance.getValor()) + " enviado com sucesso!");
 
         } catch (HttpStatusCodeException ex) {
             String mensagem = extrairMensagemBackend(ex);
-
-            // Mapeia erros de negócio para mensagens amigáveis
-            if (mensagem != null) {
-                if (mensagem.toLowerCase().contains("fechado") || mensagem.toLowerCase().contains("closed")) {
-                    redirectAttributes.addFlashAttribute("errorMessage",
-                            "⛔ Este edital está fechado e não aceita mais lances.");
-                } else if (mensagem.toLowerCase().contains("data") || mensagem.toLowerCase().contains("prazo")) {
-                    redirectAttributes.addFlashAttribute("errorMessage",
-                            "📅 Data inválida: o prazo para envio de lances foi encerrado.");
-                } else if (mensagem.toLowerCase().contains("já existe") || mensagem.toLowerCase().contains("duplicate")
-                        || mensagem.toLowerCase().contains("already")) {
-                    redirectAttributes.addFlashAttribute("errorMessage",
-                            "⚠️ Você já enviou um lance para este edital.");
-                } else {
-                    redirectAttributes.addFlashAttribute("errorMessage", "Erro ao enviar lance: " + mensagem);
-                }
-            } else {
-                redirectAttributes.addFlashAttribute("errorMessage",
-                        "Erro ao enviar lance. Código HTTP: " + ex.getStatusCode().value());
-            }
+            redirectAttributes.addFlashAttribute("errorMessage",
+                    mensagem != null ? mensagem : "Ocorreu um erro ao enviar o lance. Tente novamente em instantes.");
 
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("errorMessage", "Erro inesperado: " + e.getMessage());
@@ -133,8 +131,6 @@ public class EditalController {
 
         return "redirect:/editais/" + id;
     }
-
-    // ── Visualização de lances ─────────────────────────────────────────────────
 
     @GetMapping("/editais/{id}/lances")
     public String verLances(
@@ -155,7 +151,6 @@ public class EditalController {
             model.addAttribute("edital", edital);
             model.addAttribute("lances", lances);
             model.addAttribute("role", role);
-
             return "lances";
 
         } catch (HttpStatusCodeException ex) {
@@ -168,8 +163,6 @@ public class EditalController {
         }
     }
 
-    // ── Visualização dos Próprios Lances (Para FORNECEDOR) ─────────────────────
-
     @GetMapping("/meus-lances")
     public String meusLances(
             Model model,
@@ -180,17 +173,12 @@ public class EditalController {
         if (token == null) return "redirect:/login";
 
         String role = (String) session.getAttribute("role");
-        if (!"FORNECEDOR".equals(role)) {
-            redirectAttributes.addFlashAttribute("errorMessage", "Acesso negado: apenas fornecedores podem visualizar seus lances.");
-            return "redirect:/editais";
-        }
 
         try {
             List<com.bidding.system.frontend.model.MeuLanceDTO> lances = restService.getMeusLances(token);
 
             model.addAttribute("lances", lances);
             model.addAttribute("role", role);
-
             return "meus-lances";
 
         } catch (HttpStatusCodeException ex) {
@@ -203,8 +191,6 @@ public class EditalController {
         }
     }
 
-    // ── Criar novo edital ──────────────────────────────────────────────────────
-
     @GetMapping("/novo-edital")
     public String novoEdital(Model model, HttpSession session) {
         String token = (String) session.getAttribute("token");
@@ -215,10 +201,15 @@ public class EditalController {
     }
 
     @PostMapping("/novo-edital")
-    public String novoEdital(@ModelAttribute("editalDTO") EditalDTO editalDTO, HttpSession session, RedirectAttributes redirectAttributes) {
+    public String novoEdital(@Valid @ModelAttribute("editalDTO") EditalDTO editalDTO, BindingResult result, HttpSession session, RedirectAttributes redirectAttributes) {
+        if (result.hasErrors()) {
+            return "novo-edital";
+        }
+
         try {
             String token = (String) session.getAttribute("token");
             restService.novoEdital(editalDTO, token);
+
             redirectAttributes.addFlashAttribute("mensagemSucesso", "Edital criado com sucesso!");
             return "redirect:/editais";
 
@@ -239,8 +230,6 @@ public class EditalController {
         }
     }
 
-    // ── Utilidade ──────────────────────────────────────────────────────────────
-
     private String extrairMensagemBackend(HttpStatusCodeException ex) {
         try {
             return new ObjectMapper()
@@ -250,4 +239,4 @@ public class EditalController {
             return null;
         }
     }
-}
+}

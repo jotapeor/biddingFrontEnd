@@ -66,12 +66,16 @@ public class ApiService {
             String payload = partes[1];
             int padding = (4 - payload.length() % 4) % 4;
             payload = payload + "=".repeat(padding);
+
             String json = new String(Base64.getUrlDecoder().decode(payload), StandardCharsets.UTF_8);
+
             String roleKey = "\"role\":\"";
             int start = json.indexOf(roleKey);
             if (start == -1) return null;
+
             start += roleKey.length();
             int end = json.indexOf("\"", start);
+
             return json.substring(start, end);
         } catch (Exception e) {
             return null;
@@ -85,6 +89,7 @@ public class ApiService {
             int padding = (4 - payload.length() % 4) % 4;
             payload = payload + "=".repeat(padding);
             String json = new String(Base64.getUrlDecoder().decode(payload), StandardCharsets.UTF_8);
+
             for (String key : new String[]{"\"nome\":\"", "\"name\":\""}) {
                 int start = json.indexOf(key);
                 if (start != -1) {
@@ -100,7 +105,6 @@ public class ApiService {
     }
 
     public void registrar(UserDTO user) {
-        user.setRole("FORNECEDOR");
         restClient.post()
                 .uri("/autenticar/registrar")
                 .body(user)

@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+<!-- Formulário de criação de novo edital, acessível apenas para usuários com role ORGAO. -->
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
@@ -6,37 +7,25 @@
     <title>EditaisGOV - Novo Edital</title>
     <link rel="icon" type="image/png" th:href="@{/edital-icon.png}">
     <th:block th:replace="~{layout :: head-content}"></th:block>
-    <style>
-        .field-error {
-            display: none;
-            color: #dc3545;
-            font-size: 0.825rem;
-            margin-top: 0.25rem;
-        }
-        .field-error.visible {
-            display: block;
-        }
-        .form-control.is-invalid,
-        .form-select.is-invalid {
-            border-color: #dc3545;
-            box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.15);
-        }
-    </style>
 </head>
 <body class="d-flex flex-column min-vh-100 bg-light">
 
-<!-- Navbar Fragment -->
+<!-- Navbar do layout global -->
 <div th:replace="~{layout :: navbar}"></div>
 
 <div class="container mt-4 flex-grow-1">
 
+    <!-- Mensagem de sucesso vinda via flash attribute após criação bem-sucedida -->
     <div th:if="${mensagemSucesso}" class="alert alert-success alert-dismissible fade show shadow-sm" role="alert">
         <span th:text="${mensagemSucesso}"></span>
         <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fechar"></button>
     </div>
 
-    <!-- Erro do servidor (inline, mesmo padrão dos campos) -->
-    <div th:if="${errorMessage}" class="field-error visible mb-3" th:text="${errorMessage}"></div>
+    <!-- Erro exibido como alerta Bootstrap descartável -->
+    <div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show shadow-sm" role="alert">
+        <strong>Atenção!</strong> <span th:text="${errorMessage}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fechar"></button>
+    </div>
 
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div class="d-flex align-items-center gap-3">
@@ -47,29 +36,41 @@
 
     <div class="card shadow-sm border-0">
         <div class="card-body p-4">
-            <form th:action="@{/novo-edital}" method="post" th:object="${editalDTO}" id="formNovoEdital" novalidate>
+            <!-- th:action="@{/novo-edital}": URL do POST de criação, mapeada pelo @PostMapping do EditalController. -->
+            <!-- th:object="${editalDTO}": vincula o formulário ao EditalDTO do model. -->
+            <!-- novalidate: desabilita a validação nativa do browser. -->
+            <form th:action="@{/novo-edital}" method="post" th:object="${editalDTO}" id="formNovoEdital">
 
                 <div class="mb-3">
                     <label for="titulo" class="form-label fw-bold">Título do Edital</label>
+                    <!-- th:field="*{titulo}": gera id="titulo", name="titulo" e vincula o input ao campo do objeto. -->
                     <input type="text" class="form-control form-control-lg" id="titulo" name="titulo"
-                           th:field="*{titulo}" placeholder="Ex: Aquisição de Computadores">
-                    <div class="field-error" id="titulo-error"></div>
-                    <div class="form-text">Mínimo de 5 e máximo de 150 caracteres.</div>
+                           th:field="*{titulo}" placeholder="Ex: Aquisição de Computadores"
+                           th:classappend="${#fields.hasErrors('titulo')} ? 'is-invalid'">
+                    <div class="invalid-feedback fw-bold" th:if="${#fields.hasErrors('titulo')}"
+                         th:errors="*{titulo}"></div>
                 </div>
 
                 <div class="mb-3">
                     <label for="descricao" class="form-label fw-bold">Descrição</label>
+                    <!-- textarea com th:field: vincula ao campo descricao do EditalDTO. -->
                     <textarea class="form-control" id="descricao" name="descricao" rows="4"
-                              th:field="*{descricao}" placeholder="Detalhes completos sobre o objeto da licitação..."></textarea>
-                    <div class="field-error" id="descricao-error"></div>
+                              th:field="*{descricao}"
+                              placeholder="Detalhes completos sobre o objeto da licitação..."
+                              th:classappend="${#fields.hasErrors('descricao')} ? 'is-invalid'"></textarea>
+                    <div class="invalid-feedback fw-bold" th:if="${#fields.hasErrors('descricao')}"
+                         th:errors="*{descricao}"></div>
                 </div>
 
                 <div class="row">
                     <div class="col-md-6 mb-3">
                         <label for="dataFechamento" class="form-label fw-bold">Data e Hora de Fechamento</label>
+                        <!-- type="datetime-local": input nativo HTML5 que exibe um seletor de data e hora. -->
                         <input type="datetime-local" class="form-control" id="dataFechamento"
-                               th:field="*{dataFechamento}">
-                        <div class="field-error" id="dataFechamento-error"></div>
+                               th:field="*{dataFechamento}"
+                               th:classappend="${#fields.hasErrors('dataFechamento')} ? 'is-invalid'">
+                        <div class="invalid-feedback fw-bold" th:if="${#fields.hasErrors('dataFechamento')}"
+                             th:errors="*{dataFechamento}"></div>
                     </div>
                 </div>
 
@@ -87,105 +88,5 @@
 <div th:replace="~{layout :: footer}"></div>
 
 <script th:src="@{/webjars/bootstrap/5.3.8/js/bootstrap.bundle.min.js}"></script>
-<script>
-    (function () {
-        const tituloInput       = document.getElementById('titulo');
-        const descricaoInput    = document.getElementById('descricao');
-        const dataInput         = document.getElementById('dataFechamento');
-
-        const tituloError       = document.getElementById('titulo-error');
-        const descricaoError    = document.getElementById('descricao-error');
-        const dataError         = document.getElementById('dataFechamento-error');
-
-        const form = document.getElementById('formNovoEdital');
-
-        /* ── Helpers ── */
-        function showError(input, errorEl, message) {
-            errorEl.textContent = message;
-            input.classList.add('is-invalid');
-            errorEl.classList.add('visible');
-        }
-
-        function clearError(input, errorEl) {
-            input.classList.remove('is-invalid');
-            errorEl.classList.remove('visible');
-            errorEl.textContent = '';
-        }
-
-        /* ── Funções de validação individuais ── */
-        function validateTitulo() {
-            const val = tituloInput.value.trim();
-            if (val === '') {
-                showError(tituloInput, tituloError, 'O título não pode ser vazio.');
-                return false;
-            } else if (val.length < 5) {
-                showError(tituloInput, tituloError, 'O título deve ter no mínimo 5 caracteres.');
-                return false;
-            } else if (val.length > 150) {
-                showError(tituloInput, tituloError, 'O título deve ter no máximo 150 caracteres.');
-                return false;
-            }
-            clearError(tituloInput, tituloError);
-            return true;
-        }
-
-        function validateDescricao() {
-            const val = descricaoInput.value.trim();
-            if (val === '') {
-                showError(descricaoInput, descricaoError, 'A descrição não pode ser vazia.');
-                return false;
-            } else if (val.length > 1000) {
-                showError(descricaoInput, descricaoError, 'A descrição deve ter no máximo 1000 caracteres.');
-                return false;
-            }
-            clearError(descricaoInput, descricaoError);
-            return true;
-        }
-
-        function validateData() {
-            const val = dataInput.value;
-            if (!val) {
-                showError(dataInput, dataError, 'Informe a data e hora de fechamento.');
-                return false;
-            }
-            const escolhida = new Date(val);
-            if (escolhida <= new Date()) {
-                showError(dataInput, dataError, 'A data de fechamento deve ser no futuro.');
-                return false;
-            }
-            clearError(dataInput, dataError);
-            return true;
-        }
-
-        /* ── Validação ao sair do campo (blur) ── */
-        tituloInput.addEventListener('blur', validateTitulo);
-        descricaoInput.addEventListener('blur', validateDescricao);
-        dataInput.addEventListener('blur', validateData);
-
-        /* ── Remove erro enquanto o usuário corrige (input) ── */
-        tituloInput.addEventListener('input', function () {
-            const val = this.value.trim();
-            if (val.length >= 5 && val.length <= 150) clearError(this, tituloError);
-            else if (this.classList.contains('is-invalid')) validateTitulo();
-        });
-
-        descricaoInput.addEventListener('input', function () {
-            if (this.value.trim() !== '') clearError(this, descricaoError);
-            if (this.value.length > 1000 ) showError(this, descricaoError, 'A descrição deve ter no máximo 1000 caracteres.');
-        });
-
-        dataInput.addEventListener('change', function () {
-            if (this.value) validateData();
-        });
-
-        /* ── Validação completa no submit ── */
-        form.addEventListener('submit', function (e) {
-            const tituloOk    = validateTitulo();
-            const descricaoOk = validateDescricao();
-            const dataOk      = validateData();
-            if (!tituloOk || !descricaoOk || !dataOk) e.preventDefault();
-        });
-    })();
-</script>
 </body>
 </html>

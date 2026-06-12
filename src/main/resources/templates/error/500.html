@@ -1,23 +1,37 @@
 <!DOCTYPE html>
+<!-- 500.html — Página de erro HTTP 500 (Erro Interno do Servidor). -->
+<!-- Exibida quando ocorre uma exceção não tratada ou falha inesperada no servidor durante o processamento de uma requisição. -->
+<!-- O Spring Boot detecta automaticamente exceções não capturadas e redireciona para esta página. -->
+<!-- O botão redireciona para /editais, que é a página principal da aplicação. -->
+<!-- A navbar e o footer são incluídos via fragmentos do layout.html. -->
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
     <title>Erro Interno</title>
+    <!-- Importa Bootstrap CSS e style.css via fragmento reutilizável definido em layout.html. -->
     <th:block th:replace="~{layout :: head-content}"></th:block>
 </head>
+<!-- d-flex flex-column min-vh-100: mantém o footer no rodapé mesmo nesta página de erro, que possui pouco conteúdo. -->
 <body class="d-flex flex-column min-vh-100 bg-light">
 
+<!-- Inclui a navbar global definida em layout.html -->
 <div th:replace="~{layout :: navbar}"></div>
 
+<!-- Conteúdo central da página de erro -->
 <div class="container text-center mt-5">
+    <!-- Código de status HTTP em destaque com cor vermelha (text-danger) -->
     <h1 class="display-1 text-danger fw-bold">500</h1>
     <h3 class="mb-4">Erro Interno do Servidor</h3>
-    <p class="lead text-muted mb-5">Ocorreu um problema inesperado nos nossos servidores. Tente novamente mais tarde.</p>
+    <p class="lead text-muted mb-5">Ocorreu um problema inesperado nos nossos servidores. Tente novamente mais
+        tarde.</p>
+    <!-- Botão de ação: redireciona para a listagem de editais, página principal da aplicação -->
     <a th:href="@{/editais}" class="btn btn-primary btn-lg px-5 shadow-sm">Voltar ao Início</a>
 </div>
 
+<!-- Inclui o rodapé definido em layout.html -->
 <div th:replace="~{layout :: footer}"></div>
 
+<!-- Bootstrap JS: necessário para funcionalidades como collapse da navbar em mobile -->
 <script th:src="@{/webjars/bootstrap/5.3.8/js/bootstrap.bundle.min.js}"></script>
 </body>
 </html>

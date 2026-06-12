@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+<!-- Página de listagem de editais: exibe todos os editais com filtro de urgência. -->
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
@@ -9,12 +10,12 @@
 </head>
 <body class="d-flex flex-column min-vh-100 bg-light">
 
-<!-- Navbar Fragment -->
+<!-- Navbar do layout global -->
 <div th:replace="~{layout :: navbar}"></div>
 
 <div class="container mt-4 flex-grow-1">
 
-    <!-- Mensagens de Sucesso / Erro -->
+    <!-- Mensagens de feedback vindas via RedirectAttributes (flash attributes) do controller. -->
     <div th:if="${mensagemSucesso}" class="alert alert-success alert-dismissible fade show shadow-sm" role="alert">
         <strong>Sucesso!</strong> <span th:text="${mensagemSucesso}"></span>
         <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fechar"></button>
@@ -26,6 +27,7 @@
 
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h1 class="h2 text-primary mb-0">Sistema de Editais</h1>
+        <!-- Botão "Novo Edital" visível apenas para quem não é FORNECEDOR. -->
         <a th:if="${role != 'FORNECEDOR'}" th:href="@{/novo-edital}" class="btn btn-success shadow-sm">
             &#43; Novo Edital
         </a>
@@ -34,14 +36,20 @@
     <div class="card shadow-sm mb-4">
         <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
             <h5 class="mb-0 text-dark">Editais Disponíveis</h5>
+
+            <!-- Formulário de filtro por urgência: botão submit padrão, sem JavaScript. -->
             <form th:action="@{/editais}" method="get" class="d-flex align-items-center m-0">
-                <div class="form-check form-switch me-3">
-                    <input class="form-check-input" type="checkbox" role="switch" id="urgenteSwitch" name="urgente" th:checked="${param.urgente != null}">
-                    <label class="form-check-label text-danger fw-bold" for="urgenteSwitch">Apenas Urgentes</label>
+                <button type="submit" name="urgente" value="true" th:if="${param.urgente == null}"
+                        class="btn btn-outline-danger shadow-sm fw-bold rounded-pill px-3">
+                    &#128293; Apenas Urgentes
+                </button>
+                <div th:if="${param.urgente != null}" class="d-flex align-items-center gap-2">
+                    <span class="badge bg-danger rounded-pill px-3 py-2">&#9989; Filtrando Urgentes</span>
+                    <a th:href="@{/editais}" class="btn btn-outline-secondary btn-sm rounded-pill">Limpar filtro</a>
                 </div>
-                <button type="submit" class="btn btn-sm btn-outline-secondary">Filtrar</button>
             </form>
         </div>
+
         <div class="card-body p-0">
             <div class="table-responsive">
                 <table class="table table-striped table-hover mb-0 align-middle">
@@ -55,25 +63,31 @@
                     </tr>
                     </thead>
                     <tbody>
+                    <!-- th:each="edital : ${editais}": itera sobre a lista de EditalDTO passada pelo controller. -->
                     <tr th:each="edital : ${editais}" class="card-hover">
                         <th scope="row" class="px-4 text-muted" th:text="${edital.id}">1</th>
                         <td class="fw-semibold text-dark" th:text="${edital.titulo}">Título</td>
                         <td>
-                            <span class="data-fechamento" th:attr="data-time=${edital.dataFechamento}" th:text="${edital.dataFechamentoFormatada}"></span>
+                            <!-- th:text exibe a data formatada calculada pelo Java. -->
+                            <span th:text="${edital.dataFechamentoFormatada}"></span>
                         </td>
                         <td>
-                            <span class="badge px-2 py-1"
-                                  th:classappend="${edital.status == 'ABERTO'} ? 'bg-success' : 'bg-secondary'"
-                                  th:text="${edital.status}">
-                            </span>
-                            <span class="badge bg-danger ms-1 badge-urgent d-none" th:id="'badge-urgent-' + ${edital.id}">Encerrando em breve!</span>
+                            <span th:if="${edital.status != null and #strings.startsWith(edital.status, 'ABERTO')}"
+                                  class="badge px-2 py-1 bg-success" th:text="${edital.status}">ABERTO</span>
+                            <span th:if="${edital.status == null or !#strings.startsWith(edital.status, 'ABERTO')}"
+                                  class="badge px-2 py-1 bg-secondary" th:text="${edital.status}"></span>
+                            <!-- Badge de urgência calculado pelo Java no controller (sem JavaScript). -->
+                            <!-- th:if="${edital.encerrando}": exibido apenas quando a flag é true. -->
+                            <span th:if="${edital.encerrando}" class="badge bg-danger ms-1">Encerrando em breve!</span>
                         </td>
                         <td class="text-end px-4">
-                            <a th:href="@{/editais/{id}(id=${edital.id})}" class="btn btn-primary btn-sm px-3 shadow-sm">
+                            <a th:href="@{/editais/{id}(id=${edital.id})}"
+                               class="btn btn-primary btn-sm px-3 shadow-sm">
                                 Ver Detalhes
                             </a>
                         </td>
                     </tr>
+                    <!-- Linha exibida apenas quando a lista está vazia. -->
                     <tr th:if="${#lists.isEmpty(editais)}">
                         <td colspan="5" class="text-center py-5 text-muted">
                             Nenhum edital encontrado no momento.
@@ -89,25 +103,5 @@
 <div th:replace="~{layout :: footer}"></div>
 
 <script th:src="@{/webjars/bootstrap/5.3.8/js/bootstrap.bundle.min.js}"></script>
-<script>
-    // Script para exibir badge de urgente (fechando em menos de 48h)
-    document.addEventListener("DOMContentLoaded", function() {
-        const rows = document.querySelectorAll('.data-fechamento');
-        const now = new Date().getTime();
-        const limit = 48 * 60 * 60 * 1000; // 48 horas em milissegundos
-        
-        rows.forEach(function(row) {
-            const timeStr = row.getAttribute('data-time');
-            if (timeStr) {
-                const closeDate = new Date(timeStr).getTime();
-                const diff = closeDate - now;
-                if (diff > 0 && diff < limit) {
-                    const id = row.closest('tr').querySelector('.badge-urgent').id;
-                    document.getElementById(id).classList.remove('d-none');
-                }
-            }
-        });
-    });
-</script>
 </body>
 </html>

@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+<!-- Página do histórico pessoal de lances do FORNECEDOR logado. -->
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
@@ -13,7 +14,6 @@
 
 <div class="container mt-4 flex-grow-1">
 
-    <!-- Cabeçalho -->
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div class="d-flex align-items-center gap-3">
             <a th:href="@{/editais}" class="btn btn-outline-secondary btn-sm shadow-sm">&larr; Editais</a>
@@ -21,7 +21,7 @@
         </div>
     </div>
 
-    <!-- Tabela de Lances -->
+    <!-- Tabela com o histórico de todos os lances enviados pelo FORNECEDOR logado -->
     <div class="card shadow-sm">
         <div class="card-header bg-white py-3">
             <h5 class="mb-0 text-dark">Histórico Pessoal</h5>
@@ -40,43 +40,62 @@
                     </thead>
                     <tbody>
 
+                    <!-- Itera sobre a lista de MeuLanceDTO passada pelo controller. -->
+                    <!-- MeuLanceDTO agrega dados do lance e do edital em um único objeto. -->
                     <tr th:each="lance : ${lances}">
                         <td class="px-4">
+                            <!-- Link clicável para o edital relacionado. -->
+                            <!-- th:href usa lance.idEdital para montar a URL /editais/{id}. -->
+                            <!-- th:text exibe o título do edital. -->
                             <a th:href="@{/editais/{id}(id=${lance.idEdital})}"
                                class="text-decoration-none fw-bold"
                                th:text="${lance.tituloEdital}">
                             </a>
+                            <!-- Subtexto com o ID numérico do edital para referência técnica -->
                             <div class="small text-muted" th:text="'ID: #' + ${lance.idEdital}"></div>
                         </td>
 
                         <td>
+                            <!-- Badge de status do edital no momento da consulta. -->
+                            <!-- Usa statusEdital que é o status atual do edital. -->
                             <span class="badge px-2 py-1"
-                                  th:classappend="${lance.statusEdital == 'ABERTO'} ? 'bg-success' : 'bg-secondary'"
+                                  th:classappend="${#strings.startsWith(lance.statusEdital, 'ABERTO')} ? 'bg-success' : 'bg-secondary'"
                                   th:text="${lance.statusEdital}">
                             </span>
                         </td>
 
+                        <!-- Chama o método getDataLanceFormatada() do MeuLanceDTO. -->
                         <td th:text="${lance.dataLanceFormatada}"></td>
 
                         <td class="text-success fw-bold fs-6">
                             R$ <span th:text="${#numbers.formatDecimal(lance.valor, 1, 'POINT', 2, 'COMMA')}"></span>
                         </td>
 
+                        <!-- Coluna de resultado: exibe estado diferente dependendo do status e vencedor -->
                         <td class="text-center">
-                            <span th:if="${lance.statusEdital == 'ABERTO'}" class="text-muted small">
+                            <!-- Caso 1: Edital ainda ABERTO — resultado ainda não definido. -->
+                            <span th:if="${lance.statusEdital != null and #strings.startsWith(lance.statusEdital, 'ABERTO')}"
+                                  class="text-muted small">
                                 Aguardando encerramento
                             </span>
-                            <span th:if="${lance.statusEdital != 'ABERTO' and lance.vencedor}"
+
+                            <!-- Caso 2: Edital encerrado E este lance é o vencedor. -->
+                            <!-- lance.vencedor: campo booleano do MeuLanceDTO definido pelo backend. -->
+                            <span th:if="${lance.statusEdital == 'ENCERRADO' and lance.vencedor}"
                                   class="badge bg-warning text-dark px-3 py-2 fs-6 shadow-sm border border-warning">
                                 🏆 VENCEDOR
                             </span>
-                            <span th:if="${lance.statusEdital != 'ABERTO' and !lance.vencedor}"
+
+                            <!-- Caso 3: Edital encerrado E este lance NÃO é o vencedor. -->
+                            <!-- !lance.vencedor: negação do booleano vencedor no Thymeleaf. -->
+                            <span th:if="${lance.statusEdital == 'ENCERRADO' and !lance.vencedor}"
                                   class="badge bg-danger px-3 py-2 shadow-sm border border-danger opacity-75">
                                 Não ganhou
                             </span>
                         </td>
                     </tr>
 
+                    <!-- Linha de estado vazio quando o fornecedor ainda não enviou nenhum lance -->
                     <tr th:if="${#lists.isEmpty(lances)}">
                         <td colspan="5" class="text-center py-5 text-muted">
                             <h5 class="fw-normal mb-1">Você ainda não enviou nenhum lance.</h5>

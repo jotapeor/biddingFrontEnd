@@ -10,11 +10,10 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.HttpStatusCodeException;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+import org.springframework.validation.BindingResult;
+import jakarta.validation.Valid;
 import tools.jackson.databind.ObjectMapper;
 
 @Controller
@@ -25,34 +24,16 @@ public class AuthController {
 
     @GetMapping("/")
     public String home(HttpSession session) {
+        // Verifica se já existe um token salvo na sessão HTTP (indica usuário logado)
         if (session.getAttribute("token") != null) {
             return "redirect:/editais";
         }
         return "home";
     }
 
-    @GetMapping("/api/verificar-email")
-    @ResponseBody
-    public ResponseEntity<Boolean> verificarEmail(@RequestParam String email) {
-        try {
-            return ResponseEntity.ok(restService.verificarEmail(email));
-        } catch (Exception e) {
-            return ResponseEntity.ok(false);
-        }
-    }
-
-    @GetMapping("/api/verificar-nome")
-    @ResponseBody
-    public ResponseEntity<Boolean> verificarNome(@RequestParam String nome) {
-        try {
-            return ResponseEntity.ok(restService.verificarNome(nome));
-        } catch (Exception e) {
-            return ResponseEntity.ok(false);
-        }
-    }
-
     @GetMapping("/login")
     public String login(Model model) {
+        // Preserva dados caso um POST anterior tenha falhado e redirecionado de volta
         if (!model.containsAttribute("credenciais")) {
             model.addAttribute("credenciais", new UserRequestDTO());
         }
@@ -60,18 +41,27 @@ public class AuthController {
     }
 
     @PostMapping("/logar")
-    public String logar(@ModelAttribute("credenciais") UserRequestDTO credenciais, RedirectAttributes redirectAttributes, HttpSession session) {
+    public String logar(@Valid @ModelAttribute("credenciais") UserRequestDTO credenciais, BindingResult result, RedirectAttributes redirectAttributes, HttpSession session) {
+        if (result.hasErrors()) {
+            return "login"; // Retorna à página caso a validação do formulário falhe
+        }
+
         try {
+            // Chama a API do backend; em caso de falha de login lança HttpStatusCodeException
             String token = restService.logar(credenciais);
+
+            // Armazena na sessão
             session.setAttribute("token", token);
-            String role = restService.extrairRole(token);
-            session.setAttribute("role", role);
+            session.setAttribute("role", restService.extrairRole(token));
             session.setAttribute("email", credenciais.getEmail());
+
             String nome = restService.extrairNome(token);
             session.setAttribute("nome", nome != null ? nome : credenciais.getEmail().split("@")[0]);
+
             return "redirect:/editais";
 
         } catch (HttpStatusCodeException ex) {
+            // Extrai a mensagem de erro da API (se houver) e exibe via flash attribute
             try {
                 String mensagem = new ObjectMapper()
                         .readTree(ex.getResponseBodyAsString())
@@ -91,6 +81,7 @@ public class AuthController {
 
     @GetMapping("/logout")
     public String logout(HttpSession session) {
+        // Invalida a sessão, removendo o token e outras informações
         session.invalidate();
         return "redirect:/login";
     }
@@ -104,13 +95,34 @@ public class AuthController {
     }
 
     @PostMapping("/registrar")
-    public String registrar(@ModelAttribute("user") UserDTO user, RedirectAttributes redirectAttributes) {
+    public String registrar(@Valid @ModelAttribute("user") UserDTO user, BindingResult result, RedirectAttributes redirectAttributes) {
+        // Verifica duplicidade de nome chamando a API
+        if (!result.hasFieldErrors("nome") && restService.verificarNome(user.getNome())) {
+            result.rejectValue("nome", "error.user", "Este nome já está em uso.");
+        }
+
+        // Verifica duplicidade de e-mail chamando a API
+        if (!result.hasFieldErrors("email") && restService.verificarEmail(user.getEmail())) {
+            result.rejectValue("email", "error.user", "Este e-mail já está em uso.");
+        }
+
+        // Verifica se a senha e confirmação batem
+        if (user.getSenha() != null && user.getConfirmarSenha() != null && !user.getSenha().equals(user.getConfirmarSenha())) {
+            result.rejectValue("confirmarSenha", "error.user", "As senhas não coincidem.");
+        }
+
+        if (result.hasErrors()) {
+            return "registrar"; // Mostra os erros na página de registro
+        }
+
         try {
+            // Delega a requisição POST para a API
             restService.registrar(user);
             redirectAttributes.addFlashAttribute("mensagemSucesso", "Cadastro realizado com sucesso! Faça o login.");
             return "redirect:/login";
 
         } catch (HttpStatusCodeException ex) {
+            // Se o backend retornar erro (ex: validação do lado do servidor)
             try {
                 String mensagem = new ObjectMapper()
                         .readTree(ex.getResponseBodyAsString())

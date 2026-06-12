@@ -1,11 +1,34 @@
 package com.bidding.system.frontend.model;
 
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
+
 public class UserDTO {
 
     private Long id;
+    /**
+     * Designação primária do sujeito.
+     */
+    @NotBlank(message = "O nome é obrigatório")
+    @Size(min = 8, message = "O nome deve ter pelo menos 8 caracteres")
     private String nome;
+    /**
+     * Localizador de correio digital exigido na triagem.
+     */
+    @NotBlank(message = "O e-mail é obrigatório")
+    @Email(message = "Por favor, informe um e-mail válido")
     private String email;
+    /**
+     * Senha em texto pleno oriunda do frontend. A API cuidará de efetuar Hash.
+     */
+    @NotBlank(message = "A senha é obrigatória")
+    @Size(min = 8, message = "A senha deve ter pelo menos 8 caracteres")
     private String senha;
+    /**
+     * Checagem tipográfica extra da senha. Verificada se coincide no Controller e na API.
+     */
+    @NotBlank(message = "A confirmação de senha é obrigatória")
     private String confirmarSenha;
     private String role;
 
