@@ -2,7 +2,7 @@
 
 > 🖥️ Interface Web do Sistema de Licitações Governamentais, desenvolvida com Spring Boot, Thymeleaf e Bootstrap 5. Consome a API REST do backend e gerencia autenticação via JWT.
 
-Este repositório é a **camada de interface do sistema**. Para a API que alimenta esta aplicação, consulte o repositório do **[Backend →](https://github.com/jotapeor/biddingBackEnd)**.
+Este repositório é a **camada de interface do sistema**. Para a API que alimenta esta aplicação, consulte o repositório do **[BackEnd →](https://github.com/jotapeor/biddingBackEnd)**.
 
 ---
 
