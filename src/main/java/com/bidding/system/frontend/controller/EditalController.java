@@ -230,6 +230,65 @@ public class EditalController {
         }
     }
 
+    @PostMapping("/editais/{id}/atualizar")
+    public String atualizarEdital(@PathVariable Long id, @Valid @ModelAttribute("editalDTO") EditalDTO edital, BindingResult result, HttpSession session, RedirectAttributes redirectAttributes) {
+        String token = (String) session.getAttribute("token");
+        if (token == null) return "redirect:/login";
+
+        if (result.hasErrors()) {
+            redirectAttributes.addFlashAttribute("org.springframework.validation.BindingResult.editalDTO", result);
+            redirectAttributes.addFlashAttribute("editalDTO", edital);
+            return "redirect:/editais/" + id;
+        }
+
+        try {
+            restService.atualizarEdital(id, edital, token);
+            redirectAttributes.addFlashAttribute("mensagemSucesso", "Edital atualizado com sucesso!");
+        } catch (HttpStatusCodeException ex) {
+            String mensagem = extrairMensagemBackend(ex);
+            redirectAttributes.addFlashAttribute("errorMessage", mensagem != null ? mensagem : "Erro ao atualizar edital.");
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Erro inesperado: " + e.getMessage());
+        }
+
+        return "redirect:/editais/" + id;
+    }
+
+    @PostMapping("/editais/{id}/deletar")
+    public String deletarEdital(@PathVariable Long id, HttpSession session, RedirectAttributes redirectAttributes) {
+        String token = (String) session.getAttribute("token");
+        if (token == null) return "redirect:/login";
+
+        try {
+            restService.deletarEdital(id, token);
+            redirectAttributes.addFlashAttribute("mensagemSucesso", "Edital deletado com sucesso!");
+            return "redirect:/editais";
+        } catch (HttpStatusCodeException ex) {
+            String mensagem = extrairMensagemBackend(ex);
+            redirectAttributes.addFlashAttribute("errorMessage", mensagem != null ? mensagem : "Erro ao deletar edital.");
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Erro inesperado: " + e.getMessage());
+        }
+        return "redirect:/editais/" + id;
+    }
+
+    @PostMapping("/lances/{id}/deletar")
+    public String deletarLance(@PathVariable Long id, HttpSession session, RedirectAttributes redirectAttributes) {
+        String token = (String) session.getAttribute("token");
+        if (token == null) return "redirect:/login";
+
+        try {
+            restService.deletarLance(id, token);
+            redirectAttributes.addFlashAttribute("mensagemSucesso", "Lance deletado com sucesso!");
+        } catch (HttpStatusCodeException ex) {
+            String mensagem = extrairMensagemBackend(ex);
+            redirectAttributes.addFlashAttribute("errorMessage", mensagem != null ? mensagem : "Erro ao deletar lance.");
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Erro inesperado: " + e.getMessage());
+        }
+        return "redirect:/meus-lances"; // Volta para meus lances, já que o lance é do fornecedor
+    }
+
     private String extrairMensagemBackend(HttpStatusCodeException ex) {
         try {
             return new ObjectMapper()
