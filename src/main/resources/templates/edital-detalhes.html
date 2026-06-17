@@ -8,11 +8,11 @@
     <!-- O valor estático serve como fallback no template estático. -->
     <title th:text="'EditaisGOV - ' + ${edital.titulo}">EditaisGOV - Detalhes do Edital</title>
     <link rel="icon" type="image/png" th:href="@{/edital-icon.png}">
-    <th:block th:replace="~{layout :: head-content}"></th:block>
+    <th:block th:replace="~{fragments/layout :: head-content}"></th:block>
 </head>
 <body class="d-flex flex-column min-vh-100 bg-light">
 
-<div th:replace="~{layout :: navbar}"></div>
+<div th:replace="~{fragments/layout :: navbar}"></div>
 
 <div class="container mt-4 flex-grow-1">
 
@@ -132,13 +132,18 @@
                 </div>
             </div>
 
-            <!-- Aviso para usuários não-fornecedores (ex: ORGAO) que não podem enviar lances. -->
-            <!-- th:if="${role != 'FORNECEDOR'}": cobre qualquer role que não seja fornecedor. -->
-            <div th:if="${role != 'FORNECEDOR'}" class="card shadow-sm border-info mb-4 bg-light">
-                <div class="card-body text-info text-center py-4">
-                    <h5 class="mb-3">Modo Visualização</h5>
-                    <p class="mb-0 text-dark">Apenas usuários cadastrados como <strong>FORNECEDOR</strong> podem enviar
-                        lances em editais abertos.</p>
+            <!-- Ações para o COMPRADOR -->
+            <div th:if="${role == 'COMPRADOR'}" class="card shadow-sm border-primary mb-4 bg-light">
+                <div class="card-body text-center py-4">
+                    <h5 class="mb-3 text-primary">Gerenciar Edital</h5>
+                    <button type="button" class="btn btn-warning shadow-sm me-2" data-bs-toggle="modal"
+                            data-bs-target="#editModal">
+                        Editar Edital
+                    </button>
+                    <button type="button" class="btn btn-danger shadow-sm" data-bs-toggle="modal"
+                            data-bs-target="#deleteModal">
+                        Deletar Edital
+                    </button>
                 </div>
             </div>
 
@@ -155,11 +160,74 @@
                     </ul>
                 </div>
             </div>
+
+            <!-- Modal Deletar -->
+            <div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true"
+                 th:if="${role == 'COMPRADOR'}">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header bg-danger text-white">
+                            <h5 class="modal-title" id="deleteModalLabel">Confirmar Deleção</h5>
+                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
+                                    aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                            Tem certeza que deseja deletar este edital? Esta ação não pode ser desfeita.
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                            <form th:action="@{/editais/{id}/deletar(id=${edital.id})}" method="post">
+                                <button type="submit" class="btn btn-danger">Sim, deletar</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Modal Editar -->
+            <div class="modal fade" id="editModal" tabindex="-1" aria-labelledby="editModalLabel" aria-hidden="true"
+                 th:if="${role == 'COMPRADOR'}">
+                <div class="modal-dialog modal-lg">
+                    <div class="modal-content">
+                        <div class="modal-header bg-warning">
+                            <h5 class="modal-title" id="editModalLabel">Editar Edital</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                            <form th:action="@{/editais/{id}/atualizar(id=${edital.id})}" method="post"
+                                  id="formEditarEdital">
+                                <div class="mb-3">
+                                    <label for="tituloEdit" class="form-label fw-bold">Título do Edital</label>
+                                    <input type="text" class="form-control" id="tituloEdit" name="titulo"
+                                           th:value="${edital.titulo}" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="descricaoEdit" class="form-label fw-bold">Descrição</label>
+                                    <textarea class="form-control" id="descricaoEdit" name="descricao" rows="4" required
+                                              th:text="${edital.descricao}"></textarea>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="dataFechamentoEdit" class="form-label fw-bold">Data e Hora de
+                                        Fechamento</label>
+                                    <input type="datetime-local" class="form-control" id="dataFechamentoEdit"
+                                           name="dataFechamento" th:value="${edital.dataFechamento}" required>
+                                </div>
+                                <div class="d-flex justify-content-end mt-3">
+                                    <button type="button" class="btn btn-secondary me-2" data-bs-dismiss="modal">
+                                        Cancelar
+                                    </button>
+                                    <button type="submit" class="btn btn-primary">Salvar Alterações</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 </div>
 
-<div th:replace="~{layout :: footer}"></div>
+<div th:replace="~{fragments/layout :: footer}"></div>
 
 <script th:src="@{/webjars/bootstrap/5.3.8/js/bootstrap.bundle.min.js}"></script>
 </body>

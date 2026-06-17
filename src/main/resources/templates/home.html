@@ -7,15 +7,15 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>EditaisGOV - Início</title>
     <link rel="icon" type="image/png" th:href="@{/edital-icon.png}">
-    <!-- th:replace="~{layout :: head-content}": substitui este bloco pelo fragmento "head-content" -->
+    <!-- th:replace="~{fragments/layout :: head-content}": substitui este bloco pelo fragmento "head-content" -->
     <!-- Importa Bootstrap CSS e style.css. -->
-    <th:block th:replace="~{layout :: head-content}"></th:block>
+    <th:block th:replace="~{fragments/layout :: head-content}"></th:block>
 </head>
 <!-- d-flex flex-column min-vh-100: empurra o footer para o fim da página. -->
 <body class="d-flex flex-column min-vh-100 bg-light">
 
 <!-- Inclui a navbar do layout.html; o conteúdo do div é descartado e substituído pelo fragmento -->
-<div th:replace="~{layout :: navbar}"></div>
+<div th:replace="~{fragments/layout :: navbar}"></div>
 
 <!-- flex-grow-1: faz este container crescer para preencher o espaço disponível. -->
 <div class="container mt-5 flex-grow-1 text-center">
@@ -69,7 +69,7 @@
 </div>
 
 <!-- Inclui o rodapé definido em layout.html -->
-<div th:replace="~{layout :: footer}"></div>
+<div th:replace="~{fragments/layout :: footer}"></div>
 
 <!-- Bootstrap JS: necessário para funcionalidades como collapse da navbar em mobile -->
 <script th:src="@{/webjars/bootstrap/5.3.8/js/bootstrap.bundle.min.js}"></script>

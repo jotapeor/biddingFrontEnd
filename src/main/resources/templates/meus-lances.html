@@ -6,11 +6,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>EditaisGOV - Meus Lances</title>
     <link rel="icon" type="image/png" th:href="@{/edital-icon.png}">
-    <th:block th:replace="~{layout :: head-content}"></th:block>
+    <th:block th:replace="~{fragments/layout :: head-content}"></th:block>
 </head>
 <body class="d-flex flex-column min-vh-100 bg-light">
 
-<div th:replace="~{layout :: navbar}"></div>
+<div th:replace="~{fragments/layout :: navbar}"></div>
 
 <div class="container mt-4 flex-grow-1">
 
@@ -36,6 +36,7 @@
                         <th scope="col">Data do Lance</th>
                         <th scope="col">Valor (R$)</th>
                         <th scope="col" class="text-center">Resultado</th>
+                        <th scope="col" class="text-center">Ações</th>
                     </tr>
                     </thead>
                     <tbody>
@@ -93,11 +94,43 @@
                                 Não ganhou
                             </span>
                         </td>
+                        <td class="text-center">
+                            <button type="button" class="btn btn-danger btn-sm shadow-sm" data-bs-toggle="modal"
+                                    th:data-bs-target="'#deleteLanceModal' + ${lance.idLance}">
+                                Deletar
+                            </button>
+
+                            <!-- Modal Deletar Lance -->
+                            <div class="modal fade" th:id="'deleteLanceModal' + ${lance.idLance}" tabindex="-1"
+                                 aria-labelledby="deleteLanceModalLabel" aria-hidden="true">
+                                <div class="modal-dialog text-start">
+                                    <div class="modal-content">
+                                        <div class="modal-header bg-danger text-white">
+                                            <h5 class="modal-title" id="deleteLanceModalLabel">Confirmar Deleção</h5>
+                                            <button type="button" class="btn-close btn-close-white"
+                                                    data-bs-dismiss="modal" aria-label="Close"></button>
+                                        </div>
+                                        <div class="modal-body">
+                                            Tem certeza que deseja deletar este lance? Esta ação não pode ser desfeita.
+                                        </div>
+                                        <div class="modal-footer">
+                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                                                Cancelar
+                                            </button>
+                                            <form th:action="@{/lances/{id}/deletar(id=${lance.idLance})}"
+                                                  method="post">
+                                                <button type="submit" class="btn btn-danger">Sim, deletar</button>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </td>
                     </tr>
 
                     <!-- Linha de estado vazio quando o fornecedor ainda não enviou nenhum lance -->
                     <tr th:if="${#lists.isEmpty(lances)}">
-                        <td colspan="5" class="text-center py-5 text-muted">
+                        <td colspan="6" class="text-center py-5 text-muted">
                             <h5 class="fw-normal mb-1">Você ainda não enviou nenhum lance.</h5>
                             <p class="small mb-0">Participe de editais abertos para que eles apareçam aqui.</p>
                         </td>
@@ -111,7 +144,7 @@
 
 </div>
 
-<div th:replace="~{layout :: footer}"></div>
+<div th:replace="~{fragments/layout :: footer}"></div>
 
 <script th:src="@{/webjars/bootstrap/5.3.8/js/bootstrap.bundle.min.js}"></script>
 </body>

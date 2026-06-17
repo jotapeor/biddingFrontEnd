@@ -176,4 +176,29 @@ public class ApiService {
 
         return Arrays.asList(lances);
     }
+
+    public void atualizarEdital(Long id, EditalDTO edital, String token) {
+        restClient.put()
+                .uri(uriBuilder -> uriBuilder.path("/editais/{id}").build(id))
+                .header("Authorization", "Bearer " + token)
+                .body(edital)
+                .retrieve()
+                .body(String.class);
+    }
+
+    public void deletarEdital(Long id, String token) {
+        restClient.delete()
+                .uri(uriBuilder -> uriBuilder.path("/editais/{id}").build(id))
+                .header("Authorization", "Bearer " + token)
+                .retrieve()
+                .body(String.class);
+    }
+
+    public void deletarLance(Long id, String token) {
+        restClient.delete()
+                .uri(uriBuilder -> uriBuilder.path("/lances/{id}").build(id))
+                .header("Authorization", "Bearer " + token)
+                .retrieve()
+                .body(String.class);
+    }
 }

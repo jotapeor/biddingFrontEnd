@@ -7,11 +7,11 @@
     <!-- Título dinâmico combinando o nome do edital para contexto -->
     <title th:text="'Lances - ' + ${edital.titulo}">EditaisGOV - Lances do Edital</title>
     <link rel="icon" type="image/png" th:href="@{/edital-icon.png}">
-    <th:block th:replace="~{layout :: head-content}"></th:block>
+    <th:block th:replace="~{fragments/layout :: head-content}"></th:block>
 </head>
 <body class="d-flex flex-column min-vh-100 bg-light">
 
-<div th:replace="~{layout :: navbar}"></div>
+<div th:replace="~{fragments/layout :: navbar}"></div>
 
 <div class="container mt-4 flex-grow-1">
 
@@ -127,7 +127,7 @@
 
 </div>
 
-<div th:replace="~{layout :: footer}"></div>
+<div th:replace="~{fragments/layout :: footer}"></div>
 
 <script th:src="@{/webjars/bootstrap/5.3.8/js/bootstrap.bundle.min.js}"></script>
 </body>

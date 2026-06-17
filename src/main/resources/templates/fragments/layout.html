@@ -5,7 +5,7 @@
 <head>
     <meta charset="UTF-8">
     <!-- Fragmento "head-content": importa Bootstrap CSS e o CSS customizado do projeto. -->
-    <!-- Definido aqui para ser reusado com th:replace="~{layout :: head-content}". -->
+    <!-- Definido aqui para ser reusado com th:replace="~{fragments/layout :: head-content}". -->
     <th:block th:fragment="head-content">
         <!-- Bootstrap 5: carregado via WebJars (dependência Maven). -->
         <link th:href="@{/webjars/bootstrap/5.3.8/css/bootstrap.min.css}" rel="stylesheet">

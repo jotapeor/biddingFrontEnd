@@ -9,13 +9,13 @@
     <meta charset="UTF-8">
     <title>Erro Interno</title>
     <!-- Importa Bootstrap CSS e style.css via fragmento reutilizável definido em layout.html. -->
-    <th:block th:replace="~{layout :: head-content}"></th:block>
+    <th:block th:replace="~{fragments/layout :: head-content}"></th:block>
 </head>
 <!-- d-flex flex-column min-vh-100: mantém o footer no rodapé mesmo nesta página de erro, que possui pouco conteúdo. -->
 <body class="d-flex flex-column min-vh-100 bg-light">
 
 <!-- Inclui a navbar global definida em layout.html -->
-<div th:replace="~{layout :: navbar}"></div>
+<div th:replace="~{fragments/layout :: navbar}"></div>
 
 <!-- Conteúdo central da página de erro -->
 <div class="container text-center mt-5">
@@ -29,7 +29,7 @@
 </div>
 
 <!-- Inclui o rodapé definido em layout.html -->
-<div th:replace="~{layout :: footer}"></div>
+<div th:replace="~{fragments/layout :: footer}"></div>
 
 <!-- Bootstrap JS: necessário para funcionalidades como collapse da navbar em mobile -->
 <script th:src="@{/webjars/bootstrap/5.3.8/js/bootstrap.bundle.min.js}"></script>
