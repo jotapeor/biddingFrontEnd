@@ -1,90 +1,51 @@
-# 🏛️ EditaisGOV — Frontend
+# EditaisGOV Frontend
 
-> 🖥️ Interface Web do Sistema de Licitações Governamentais, desenvolvida com Spring Boot, Thymeleaf e Bootstrap 5. Consome a API REST do backend e gerencia autenticação via JWT.
+Server-rendered web client for EditaisGOV, a government procurement (bidding) platform. Provides tender browsing, bid submission, tender creation, and role-based navigation. Consumes the [EditaisGOV Backend](https://github.com/jotapeor/biddingBackEnd) REST API.
 
-Este repositório é a **camada de interface do sistema**. Para a API que alimenta esta aplicação, consulte o repositório do **[BackEnd →](https://github.com/jotapeor/biddingBackEnd)**.
+## Tech Stack
 
----
+- Java 21
+- Spring Boot 4.0.6 (Web MVC, Thymeleaf, Validation)
+- Bootstrap 5.3.8
+- Vanilla JavaScript (AJAX validation, DOM handling)
+- Maven
 
-## 🚀 Tecnologias Utilizadas
+## Architecture
 
-| Tecnologia | Descrição |
-|---|---|
-| Java 17+ | Linguagem principal |
-| Spring Boot | Framework base (Spring Web, Spring MVC) |
-| Thymeleaf | Renderização server-side e template engine |
-| Bootstrap 5.3 | Estilização UI/UX e Grid responsivo |
-| Vanilla JavaScript | Manipulação do DOM e Fetch API |
-| Maven | Gerenciador de dependências |
+Classic MVC, server-side rendered with Thymeleaf. `ApiService` wraps a `RestClient` that calls the backend REST API. The JWT issued by the backend is stored in the HTTP session after login and attached to outgoing API calls; there is no client-side token storage. User role is decoded from the JWT payload to conditionally render UI elements (e.g. tender creation is only available to buyers).
 
----
+## Routes
 
-## ✨ Funcionalidades
+| Path | Access | Description |
+|------|--------|--------------|
+| `/` | Public | Landing page |
+| `/login` | Public | Login form |
+| `/registrar` | Public | Registration form, with live email/username availability checks |
+| `/editais` | Authenticated | Tender listing; `?urgente=true` filters tenders closing within 48 hours |
+| `/editais/{id}` | Authenticated | Tender detail and bid submission |
+| `/editais/{id}/lances` | Authenticated | Bid list for a tender |
+| `/novo-edital` | Authenticated (buyer) | Tender creation form |
+| `/meus-lances` | Authenticated (supplier) | Bids placed by the current user |
+| `/logout` | Authenticated | Invalidates the session |
 
-- **Validação em Tempo Real:** Requisições AJAX com debounce para verificar disponibilidade de e-mail e nome durante o cadastro.
-- **Indicador de Força de Senha:** Feedback visual com requisitos (maiúsculas, números, caracteres especiais) enquanto o usuário digita.
-- **Navegação Baseada em Perfil:** Interface e botões se adaptam conforme o perfil do usuário (`FORNECEDOR` ou Comprador).
-- **Integração com JWT:** Extrai dados do usuário diretamente do payload do token para personalizar a interface.
-- **Layout Responsivo:** Abordagem mobile-first com fragmentos Thymeleaf reutilizáveis.
+## Requirements
 
----
+- JDK 21+
+- Maven 3.9+
+- A running instance of [biddingBackEnd](https://github.com/jotapeor/biddingBackEnd) on `localhost:8080`
 
-## 🛠️ Pré-requisitos
+## Setup
 
-- [JDK 17+](https://www.oracle.com/java/technologies/downloads/)
-- [Maven](https://maven.apache.org/)
-- **[Backend do sistema](https://github.com/jotapeor/biddingBackEnd)** em execução em `http://localhost:8080`
-
----
-
-## ⚙️ Como Executar Localmente
-
-1. **Clone o repositório:**
-   ```bash
-   git clone https://github.com/jotapeor/bidding-frontend.git
-   cd bidding-frontend
-   ```
-
-2. **Certifique-se de que o Backend está em execução:**
-   Esta aplicação consome a API REST. Siga as instruções no **[repositório do Backend](https://github.com/jotapeor/biddingBackEnd)** antes de prosseguir.
-
-3. **Inicie a aplicação:**
-   ```bash
-   # Com Maven Wrapper
-   ./mvnw spring-boot:run
-   ```
-   Ou execute `FrontendApplication.java` diretamente pela sua IDE (Eclipse / IntelliJ IDEA).
-
-4. **Acesse a aplicação:**
-   ```
-   http://localhost:8081
-   ```
-
-> ⚠️ Certifique-se de que o frontend rode em uma porta diferente do backend (padrão: `8081`).
-
----
-
-## 📂 Estrutura de Pacotes
-
-```text
-src/main/
-├── java/com/bidding/system/frontend/
-│   ├── controller/    # Controllers Web (roteamento e renderização da UI)
-│   ├── model/         # DTOs mapeando dados do backend
-│   └── service/       # Camada de integração com a API (RestClient)
-└── resources/
-    ├── static/        # CSS, JS, Imagens
-    └── templates/     # Views HTML Thymeleaf (layout, login, registrar, editais...)
+```bash
+./mvnw spring-boot:run
 ```
 
----
+The application starts on `http://localhost:8081`. Start the backend first; this application has no data layer of its own and depends entirely on the API being reachable.
 
-## 🤝 Contribuindo
+## Configuration
 
-Sinta-se à vontade para abrir uma *issue* antes de enviar um *pull request*, especialmente para mudanças maiores.
+The backend base URL is currently hardcoded in `ApiService`. To point at a different backend instance, update the `baseUrl` value or externalize it via `application.properties` and an environment variable (e.g. `API_BASE_URL`).
 
----
+## Related Project
 
-## 📝 Licença
-
-Este projeto tem fins educacionais como parte de um curso de Desenvolvimento Web com Java.
+[biddingBackEnd](https://github.com/jotapeor/biddingBackEnd) — Spring Boot REST API providing authentication, tender management, and bid processing for this client.
