@@ -11,7 +11,7 @@
     <groupId>com.bidding.system.frontend</groupId>
     <artifactId>bidding-frontend</artifactId>
     <version>0.0.1-SNAPSHOT</version>
-    <name>bidding-frontend</name>
+    <name>biddingFrontEnd</name>
     <description/>
     <url/>
     <licenses>
